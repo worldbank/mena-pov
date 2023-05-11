@@ -18,15 +18,16 @@ mena-pov
 ├── LICENSE                    # The license for this project
 ├── CODE_OF_CONDUCT            # Code of Conduct 
 ├── requirements.txt           # Python/R dependencies needed for this project
-│
 ├── CONTRIBUTE.md              # Guidelines for contributing to this project
+├
 ├── docs                       # Documentation, usage guides, etc.
 │   └── ...
 │
 ├── data                       # Folder for all data (should be kept empty in the repo due to size limitations)
 │   └── ...
 │
-├── src                        # Source code for this project
+├── notebooks_scripts                        # Source code for this project
+│   ├── main_script            # A central script to run globals/install packages
 │   ├── country_A              # Replace 'country_A' with the name of the country
 │   │   ├── cleaning           # Data cleaning scripts for 'country_A'
 │   │   └── analysis           # Data analysis scripts for 'country_A'
