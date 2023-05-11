@@ -11,6 +11,11 @@ The Geospatial Poverty and Vulnerability Assessment repository aims to centrally
 - Export of results for further analysis or presentation
 
 ## Repository Structure
+In this structure, `cleaning` is at the same level as analysis under the `notebooks_scripts` directory. Within the `cleaning` directory, you have separate folders for each data source. This reflects that the cleaning and preprocessing is done in a single script for each data source, regardless of country.
+
+The analysis directory, on the other hand, contains separate directories for each country, reflecting that the analysis is specific to each country.
+
+As always, remember to replace the placeholders (country_1, country_2, source_1, source_2, etc.) with the actual names of the countries and data sources.
 ```
 mena-pov
 │
