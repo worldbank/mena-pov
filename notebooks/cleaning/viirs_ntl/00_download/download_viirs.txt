@@ -79,7 +79,7 @@ var mena_countries = ['Algeria', 'Bahrain', 'Djibouti', 'Egypt', 'Iran', 'Iraq',
 // Loop through each country
 mena_countries.forEach(function(country_name) {
     // Extract VIIRS for each country
-    var raw_viirs = extract_viirs_country_time_stacked(country_name, '2012-04-01', '2021-01-31', 'raw', 'gee_extracts', country_name.toLowerCase() + '_viirs_raw_monthly_start_201204');
-    var corrected_viirs = extract_viirs_country_time_stacked(country_name, '2014-01-01', '2021-01-31', 'corrected', 'gee_extracts', country_name.toLowerCase() + '_viirs_corrected_monthly_start_201401');
+    var raw_viirs = extract_viirs_country_time_stacked(country_name, '2012-04-01', '2023-03-31', 'raw', 'gee_extracts', country_name.toLowerCase() + '_viirs_raw_monthly_start_201204_end_032023');
+    var corrected_viirs = extract_viirs_country_time_stacked(country_name, '2014-01-01', '2023-01-31', 'corrected', 'gee_extracts', country_name.toLowerCase() + '_viirs_corrected_monthly_start_201401_end_032023');
 });
 
