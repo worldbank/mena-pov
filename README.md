@@ -25,7 +25,7 @@ mena-pov
 ├── data                       # Folder for all data (should be kept empty in the repo due to size limitations)
 │   └── ...
 │
-├── notebooks_script                        # Source code for this project
+├── notebooks                  # Source code for this project
 │   ├── cleaning               # Data cleaning and preprocessing scripts
 │   │   ├── source_1           # Replace 'source_1' with the name of the geospatial source
 │   │   └── source_2           # Repeat for each source
