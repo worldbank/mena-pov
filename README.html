@@ -550,6 +550,9 @@ title="Print to PDF"
 </section>
 <section id="repository-structure">
 <h2>Repository Structure<a class="headerlink" href="#repository-structure" title="Permalink to this heading">#</a></h2>
+<p>In this structure, <code class="docutils literal notranslate"><span class="pre">cleaning</span></code> is at the same level as analysis under the <code class="docutils literal notranslate"><span class="pre">notebooks_scripts</span></code> directory. Within the <code class="docutils literal notranslate"><span class="pre">cleaning</span></code> directory, you have separate folders for each data source. This reflects that the cleaning and preprocessing is done in a single script for each data source, regardless of country.</p>
+<p>The analysis directory, on the other hand, contains separate directories for each country, reflecting that the analysis is specific to each country.</p>
+<p>As always, remember to replace the placeholders (country_1, country_2, source_1, source_2, etc.) with the actual names of the countries and data sources.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>mena-pov
 │
 ├── README.md                  # The file you are reading now
