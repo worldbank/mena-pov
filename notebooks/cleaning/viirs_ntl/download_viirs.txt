@@ -1,0 +1,85 @@
+// =============================================================
+// Extract VIIRS Monthly Data to Country
+// =============================================================
+
+// Run on Google Earth Engine
+
+var extract_viirs_country_time_stacked = function(country_name, begin_date, end_date, raw_or_corrected_viirs, gdrive_folder, image_name){
+
+  // Get country feature
+  var countries = ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017');
+  var country = countries.filter(ee.Filter.eq('country_na', country_name));
+
+  // Load VIIRS
+  if(raw_or_corrected_viirs == "raw"){
+    var viirs = ee.ImageCollection('NOAA/VIIRS/DNB/MONTHLY_V1/VCMCFG'); //   Raw: Starts 2012-04
+  }
+
+  if(raw_or_corrected_viirs == "corrected"){
+    var viirs = ee.ImageCollection('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG'); // Corrected: Starts 2012-04
+  }
+
+  viirs = ee.ImageCollection(
+    viirs.filterDate(begin_date,end_date)
+  );
+
+  // Create separate ImageCollections of radiance and cloud cover
+  var viirs_avg_rad = viirs.select('avg_rad');
+  var viirs_cf_cvg = viirs.select('cf_cvg');
+
+  // Function to turn imagecollection into image with bands
+  var stackCollection = function(collection) {
+    // Create an initial image.
+    var first = ee.Image(collection.first()).select([]);
+
+    // Write a function that appends a band to an image.
+    var appendBands = function(image, previous) {
+      return ee.Image(previous).addBands(image);
+    };
+    return ee.Image(collection.iterate(appendBands, first));
+  };
+
+  var viirs_avg_rad_image = stackCollection(viirs_avg_rad);
+  var viirs_cf_cvg_image = stackCollection(viirs_cf_cvg);
+
+  // Make sure data types are all the same
+  viirs_avg_rad_image = viirs_avg_rad_image.float()
+  viirs_cf_cvg_image = viirs_cf_cvg_image.int16()
+
+  var avg_rad_name = image_name + "_avg_rad"
+  var cf_cvg_name = image_name + "_cf_cvg"
+
+  Export.image.toDrive({
+    folder: gdrive_folder,
+    image: viirs_avg_rad_image,
+    scale: 750,
+    region: country.geometry().bounds(),
+    description: avg_rad_name,
+  });
+
+  Export.image.toDrive({
+    folder: gdrive_folder,
+    image: viirs_cf_cvg_image,
+    scale: 750,
+    region: country.geometry().bounds(),
+    description: cf_cvg_name,
+  });
+
+    return viirs_avg_rad_image;
+
+};
+
+// Extract VIIRS ============================================================================
+
+// List of MENA countries
+var mena_countries = ['Algeria', 'Bahrain', 'Djibouti', 'Egypt', 'Iran', 'Iraq', 'Israel', 'Jordan', 'Kuwait', 'Lebanon', 'Libya', 'Malta', 'Morocco', 'Oman', 'West Bank', 'Qatar', 'Saudi Arabia', 'Syria', 'Tunisia','United Arab Emirates', 'Yemen'];
+
+
+
+// Loop through each country
+mena_countries.forEach(function(country_name) {
+    // Extract VIIRS for each country
+    var raw_viirs = extract_viirs_country_time_stacked(country_name, '2012-04-01', '2021-01-31', 'raw', 'gee_extracts', country_name.toLowerCase() + '_viirs_raw_monthly_start_201204');
+    var corrected_viirs = extract_viirs_country_time_stacked(country_name, '2014-01-01', '2021-01-31', 'corrected', 'gee_extracts', country_name.toLowerCase() + '_viirs_corrected_monthly_start_201401');
+});
+
