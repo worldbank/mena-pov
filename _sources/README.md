@@ -16,28 +16,28 @@ mena-pov
 │
 ├── README.md                  # The file you are reading now
 ├── LICENSE                    # The license for this project
-├── CODE_OF_CONDUCT            # Code of Conduct 
 ├── requirements.txt           # Python/R dependencies needed for this project
+│
 ├── CONTRIBUTE.md              # Guidelines for contributing to this project
-├
 ├── docs                       # Documentation, usage guides, etc.
 │   └── ...
 │
 ├── data                       # Folder for all data (should be kept empty in the repo due to size limitations)
 │   └── ...
 │
-├── notebooks_scripts                        # Source code for this project
-│   ├── main_script            # A central script to run globals/install packages
-│   ├── country_A              # Replace 'country_A' with the name of the country
-│   │   ├── cleaning           # Data cleaning scripts for 'country_A'
-│   │   └── analysis           # Data analysis scripts for 'country_A'
-│   ├── country_B              # Repeat the above structure for each country
-│   │   ├── cleaning
-│   │   └── analysis
+├── notebooks_script                        # Source code for this project
+│   ├── cleaning               # Data cleaning and preprocessing scripts
+│   │   ├── source_1           # Replace 'source_1' with the name of the geospatial source
+│   │   └── source_2           # Repeat for each source
+│   ├── analysis               # Data analysis scripts, separated by country
+│   │   ├── country_1          # Replace 'country_1' with the name of the country
+│   │   ├── country_2          # Repeat for each country
+│   │   └── ...
 │   └── ...
 │
 └── functions                      # scripts for user-written functions used for cleaning and analysis
     └── ...
+
 
 ```
 ## Contributing
