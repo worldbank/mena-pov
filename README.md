@@ -6,8 +6,8 @@ The Geospatial Poverty and Vulnerability Assessment repository aims to centrally
 ## Features 
 - Import and manage large geospatial datasets
 - Comprehensive data preprocessing and cleaning functions
-- Advanced spatial analysis tools for poverty and vulnerability assessment
-- Customizable visualization options for intuitive understanding of results
+- Spatial analysis tools for poverty and vulnerability assessment
+- Visulalizations options for intuitive understanding of results
 - Export of results for further analysis or presentation
 
 ## Repository Structure
