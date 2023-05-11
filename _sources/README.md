@@ -11,6 +11,7 @@ The Geospatial Poverty and Vulnerability Assessment repository aims to centrally
 - Export of results for further analysis or presentation
 
 ## Repository Structure
+```
 mena-pov
 │
 ├── README.md                  # The file you are reading now
@@ -37,7 +38,7 @@ mena-pov
 └── functions                      # scripts for user-written functions used for cleaning and analysis
     └── ...
 
-
+```
 ## Contributing
 We welcome contributions ! Please see our CONTRIBUTE.md file for details on how to contribute.
 
