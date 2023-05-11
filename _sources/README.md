@@ -45,9 +45,6 @@ mena-pov
 
 
 ```
-## Contributing
-We welcome contributions ! Please see our CONTRIBUTE.md file for details on how to contribute.
-
 
 
 ## Installation and Dependencies
