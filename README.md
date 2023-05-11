@@ -49,7 +49,29 @@ mena-pov
 
 ## Installation and Dependencies
 
+### R
+To run the R scripts, you'll need R and RStudio (optional, but recommended) installed on your computer. You will also need to install the pacman package which is used to manage and install other R packages. Open RStudio or R and run the following command:
+```
+# Install the pacman package
+install.packages("pacman")
 
+```
+After installing pacman, you can use it to install other required R packages. You can use the `_main_script.R` to install the other packages required for code in this repository.
+
+### Python
+
+To clone and run this application, you'll need Git and Python (which comes with pip) installed on your computer. From your command line:
+```
+# Clone this repository
+$ git clone https://github.com/username/mena-pov.git
+
+# Go into the repository
+$ cd mena-pov
+
+# Install Python dependencies
+$ pip install -r requirements.txt
+
+```
 
 ## License
 
