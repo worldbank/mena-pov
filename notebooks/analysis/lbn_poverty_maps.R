@@ -3,162 +3,211 @@
 
 
 # Load Data ---------------------------------------------------------------
-enum_areas_1 <- readOGR(file.path(lbn_file_path,
-                                "Team",
-                                "Projects",
-                                "Sampling",
-                                "01- LVAP Listing map data",
-                                "Phase1",
-                                "Segment",
-                                "Shapefile"),
-                      layer = "Segmentation_Phase1")
-
-
-enum_areas_2 <- readOGR(file.path(lbn_file_path,
-                                  "Team",
-                                  "Projects",
-                                  "Sampling",
-                                  "01- LVAP Listing map data",
-                                  "Phase2",
-                                  "Segment",
-                                  "Shapefile"),
-                        layer = "Segmentation_Phase2")
-
-
-
 lbn_gadm <- readOGR(file.path(lbn_file_path,
                               "Boundaries"),
-                              layer = "gadm41_LBN_1")
+                              layer = "gadm41_LBN_1") %>% st_as_sf()
 
-#relative wealth index
-rwi <- read.csv(file.path(lbn_file_path,
-                          "RWI",
-                          "LBN_relative_wealth_index.csv"))
+lbn_gadm2 <- readOGR(file.path(lbn_file_path,
+                              "Boundaries"),
+                    layer = "gadm41_LBN_2") %>% st_as_sf() %>% distinct()
+
+
+seg1 <- read_excel(file.path(lbn_file_path,
+                          "Team",
+                          "Projects",
+                          "Sampling",
+                          "01- LVAP Listing map data",
+                          "Phase1",
+                          "Segment",
+                          "Segmentation_Phase1.xls"))
+
+seg2 <- read_excel(file.path(lbn_file_path,
+                            "Team",
+                            "Projects",
+                            "Sampling",
+                            "01- LVAP Listing map data",
+                            "Phase2",
+                            "Segment",
+                            "Segmentation_Phase2.xls"))
 
 #predicted poverty estimates
-est_pov <- read.csv(file.path(lbn_file_path,
+est_pov_gov <- read_excel(file.path(lbn_file_path,
                               "Team",
                               "Projects",
                               "pov_est",
-                              "LBN_predicted_poverty_nat.csv"))
+                              "LBN_POV_subnational.xlsx"), sheet = 1)
+
+est_pov_dist <- read_excel(file.path(lbn_file_path,
+                                    "Team",
+                                    "Projects",
+                                    "pov_est",
+                                    "LBN_POV_subnational.xlsx"), sheet = 2)
 
 
+# Subset Data -------------------------------------------------------------
+seg_sub1 <- seg1 %>%
+  select(admin2Name,admin2Pcod) %>%
+  group_by(admin2Name) %>%
+  summarise(admin2Pcod = admin2Pcod) %>%
+  distinct()
 
-# Appending Enumeration Areas -----------------------------------------------
-#Merge phase 1 and phase 2
-enum_areas <- rbind(enum_areas_1, enum_areas_2)
-enum_areas <- st_as_sf(enum_areas)
+seg_sub2 <- seg2 %>%
+  select(admin2Name,admin2Pcod) %>%
+  group_by(admin2Name) %>%
+  summarise(admin2Pcod = admin2Pcod) %>%
+  distinct()
 
+seg_sub <- bind_rows(seg_sub1, seg_sub2) %>%
+  distinct() %>%
+  rename("District" = "admin2Pcod")
 
 # Merging Poverty Estimates -------------------------------------------------------
-est_pov <- est_pov %>%
-  rename("UID_Name" = "segment")
-enum_areas <- merge(enum_areas,est_pov, by=c("UID_Name"))
+
+#Governorates
+est_pov_gov_clean <- est_pov_gov %>%
+  rename("NAME_1" = "Governorate") %>%
+  filter(NAME_1 != "Total") %>%
+  mutate(NAME = case_when(
+    NAME_1 == "Baalbek-El Hermel" ~ "Baalbak - Hermel",
+    NAME_1 == "El Nabatieh" ~ "Nabatiyeh",
+    TRUE ~ NAME_1
+  ))
+
+lbn_gadm <- lbn_gadm %>%
+  rename("NAME" = "NAME_1")
+
+lbn_gadm_merged <- merge(lbn_gadm,est_pov_gov_clean, by = c("NAME"))
 
 
 
-# Merging RWI -------------------------------------------------------------
+#Districts
+est_pov_dist_clean <- merge(est_pov_dist, seg_sub, by = c("District"))
 
-#convert to sf
-rwi_sf = st_as_sf(rwi, coords = c("longitude", "latitude"), 
-                 crs = 4326, agr = "constant")
+est_pov_dist_clean <- est_pov_dist_clean %>%
+  mutate(NAME_2 = case_when(
+    admin2Name == "El Hermel" ~ "Hermel",
+    admin2Name == "El Minieh-Dennie" ~ "Minieh-Danieh",
+    admin2Name == "El Nabatieh" ~ "Nabatiyeh",
+    admin2Name == "Baalbek" ~ "Baalbeck",
+    admin2Name == "Rachaya" ~ "Rachiaya",
+    admin2Name == "Bent Jbeil" ~ "Bint Jbayl",
+    admin2Name == "El Koura" ~ "Koura",
+    admin2Name == "Zahle" ~ "Zahleh",
+    admin2Name == "Jbeil" ~ "Jubail",
+    admin2Name == "Kesrwane" ~ "Kasrouane",
+    TRUE ~ admin2Name
+  ))
 
-# Perform a spatial join between the points and shapefile using the st_join() function
-aggregated_data <- st_join(enum_areas,rwi_sf, join = st_intersects)
+#merge
+lbn_gadm2_merged <- merge(lbn_gadm2,est_pov_dist_clean, by = c("NAME_2"))
 
-summary_data <- aggregated_data %>%
-  group_by(UID_Name) %>%
-  summarize(mean_rwi = mean(rwi)) %>%
-  st_as_sf()
 
-# Convert summary_data to sf format if it's not already in sf format
-summary_data_sf <- st_as_sf(summary_data)
+main_cities <- data.frame(name = c("Tyre", "Sidon","Baalbek"),
+                          lat = c(33.2705, 33.5571, 34.0047),
+                          lon = c(35.2038, 35.3729, 36.2110))
 
 
 # Plot --------------------------------------------------------------------
-# RWI vs. OLS
-location <- geocode("Lebanon")
-center_longitude <- location$lon
-center_latitude <- location$lat
 
-map <- get_googlemap(center = c(lon =center_longitude , lat =center_latitude ), 
-                     zoom = 8, maptype = "terrain")
-
-# First map: Relative Wealth Index (RWI)
-
-rwi_map <- ggmap(map,darken = c(0.4, "white")) +
+### Governorates
+observed <- ggplot() +
   geom_sf(data = st_as_sf(lbn_gadm), 
           fill = NA, 
-          color = "black",
-          inherit.aes = FALSE) +
-  geom_sf(data = enum_areas,
-          fill = NA,
-          color = "grey",
-          inherit.aes = FALSE) +
-  geom_sf(data = summary_data_sf, aes(fill = mean_rwi),
-          inherit.aes = FALSE)+
-  labs(fill = "Mean RWI") +
+          color = "black", size = 2) +
+  geom_sf(data = lbn_gadm_merged, aes(fill = Observed),
+          color = "black", alpha = 0.6) +
+  labs(fill = "Observed", color = "") +
+  geom_sf_text(data =st_as_sf(lbn_gadm), aes(label = str_wrap(NAME, 1)), size = 2)+
+  geom_text(data = main_cities, aes(x = lon, y = lat, label = name), size = 1.5) +
   theme_void() +
   coord_sf()+
-  scale_fill_gradientn(colors = c("blue", "white", "red"),
-                       values= c(0.0 , 0.5, 1.0))
+  scale_fill_gradientn(colors = c("white", "yellow", "orange", "brown"),
+                       labels = scales::percent,
+                       limits = c(0, 0.25))
 
-rwi_map
+observed
 
-# Second map: Poverty Estimation (OLS)
-ols <- ggmap(map,darken = c(0.4, "white")) +
+imputed <- ggplot() +
   geom_sf(data = st_as_sf(lbn_gadm), 
           fill = NA, 
-          color = "black",
-          inherit.aes = FALSE) +
-  geom_sf(data = enum_areas[enum_areas$simulated == 0,],
-          inherit.aes = FALSE,
-          fill = NA,
-          color = "grey") +
-  geom_sf(data = enum_areas[enum_areas$simulated == 1,],
-          aes(fill = poor685_ols, color = "Estimated"),
-          inherit.aes = FALSE) +
-  labs(fill = "Poverty Est.\n(OLS)", color = "") +
+          color = "black", size = 3) +
+  geom_sf(data = lbn_gadm_merged, aes(fill = Imputed),
+          color = 'black', alpha = 0.5, size = 5) +
+  labs(fill = "Imputed", color = "") +
+  geom_sf_text(data =st_as_sf(lbn_gadm), aes(label = str_wrap(NAME, 1)), size = 2)+
+  geom_text(data = main_cities, aes(x = lon, y = lat, label = name), size = 1.5) +
   theme_void() +
   coord_sf()+
-  scale_fill_gradientn(colors = c("blue", "white", "red"),
-                       values= c(0.0 , 0.5, 1.0))
+  scale_fill_gradientn(colors = c("white","yellow", "orange", "brown"),
+                       labels = scales::percent,
+                       limits = c(0, 0.25))
 
-ols
+imputed
 
-lasso <- ggmap(map,darken = c(0.4, "white")) +
+total <- ggplot() +
   geom_sf(data = st_as_sf(lbn_gadm), 
           fill = NA, 
-          color = "black",
-          inherit.aes = FALSE) +
-  geom_sf(data = enum_areas[enum_areas$simulated == 0,],
-          fill = NA,
-          color = "grey",
-          inherit.aes = FALSE) +
-  geom_sf(data = enum_areas[enum_areas$simulated == 1,],
-          aes(fill = poor685_lasso, color = "Estimated"),
-          inherit.aes = FALSE) +
-  scale_fill_gradientn(colors = c("blue", "white", "red"),
-                       values= c(0.0 , 0.5, 1.0)) +
-  labs(fill = "Poverty Est.\n(Lasso)", color = "") +
-  theme_void() +
-  coord_sf()
-
-
-lasso
-
-rf <- ggmap(map,darken = c(0.4, "white")) +
-  geom_sf(data = st_as_sf(lbn_gadm), fill = NA, color = "black",
-          inherit.aes = FALSE) +
-  geom_sf(data = enum_areas[enum_areas$simulated == 0,],color = "grey",
-          inherit.aes = FALSE) +
-  geom_sf(data = enum_areas[enum_areas$simulated == 1,],
-          aes(fill = poor685_lasso, color = "Estimated"),
-          inherit.aes = FALSE) +
-  labs(fill = "Poverty Est.\n(Random Forest)", color = "") +
+          color = "black", size = 3) +
+  geom_sf(data = lbn_gadm_merged, aes(fill = Total),
+          color = "black", alpha = 0.5, size = 5) +
+  labs(fill = "Total", color = "") +
+  geom_sf_text(data =st_as_sf(lbn_gadm), aes(label = str_wrap(NAME, 1)), size = 2)+
+  geom_text(data = main_cities, aes(x = lon, y = lat, label = name), size = 1.5) +
   theme_void() +
   coord_sf()+
-  scale_fill_gradientn(colors = c("blue", "white", "red"),
-                       values= c(0.0 , 0.5, 1.0))
-rf
+  scale_fill_gradientn(colors = c("white","yellow", "orange", "brown"),
+                       labels = scales::percent,
+                       limits = c(0, 0.25))
+total
 
+
+## Districts
+observed_dist <- ggplot() +
+  geom_sf(data = lbn_gadm2_merged, aes(fill = Observed),
+          color = "grey", alpha = 0.6, size = 3) +
+  geom_sf(data = st_as_sf(lbn_gadm), 
+          fill = NA, 
+          color = "black", size = 5) +
+  labs(fill = "Observed", color = "") +
+  geom_sf_text(data =st_as_sf(lbn_gadm), aes(label = str_wrap(NAME, 1)), size = 2)+
+  theme_void() +
+  coord_sf()+
+  scale_fill_gradientn(colors = c("white", "yellow", "orange", "brown"),
+                       labels = scales::percent,
+                       limits = c(0, 0.25),
+                       na.value="grey")
+
+observed_dist
+
+imputed_dist <- ggplot() +
+  geom_sf(data = lbn_gadm2_merged, aes(fill = Imputed),
+          color = "grey", alpha = 0.5, size = 3) +
+  geom_sf(data = st_as_sf(lbn_gadm), 
+          fill = NA, 
+          color = "black", size = 5) +
+  labs(fill = "Imputed", color = "") +
+  geom_sf_text(data =st_as_sf(lbn_gadm), aes(label = str_wrap(NAME, 1)), size = 2)+
+  theme_void() +
+  coord_sf()+
+  scale_fill_gradientn(colors = c("white","yellow", "orange", "brown"),
+                       labels = scales::percent,
+                       limits = c(0, 0.25))
+
+imputed_dist
+
+total_dist <- ggplot() +
+  geom_sf(data = lbn_gadm2_merged, aes(fill = Total),
+          color = "grey", alpha = 0.5, size = 3) +
+  geom_sf(data = st_as_sf(lbn_gadm), 
+          fill = NA, 
+          color = "black", size = 5) +
+  labs(fill = "Total", color = "") +
+  geom_sf_text(data =st_as_sf(lbn_gadm), aes(label = str_wrap(NAME, 1)), size = 2)+
+  geom_text(data = main_cities, aes(x = lon, y = lat, label = name), size = 1.5) +
+  theme_void() +
+  coord_sf()+
+  scale_fill_gradientn(colors = c("white","yellow", "orange", "brown"),
+                       labels = scales::percent,
+                       limits = c(0, 0.25))
+
+total_dist
