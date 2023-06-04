@@ -10,8 +10,7 @@
 # FILEPATHS ====================================================================
 #### Root
 github_dir  <- "C:/Users/wb569257/OneDrive - WBG/Documents/GitHub"
-#local_dir   <- "//MENAPOV/menapov"
-local_dir <- "M:/"
+local_dir   <- "//MENAPOV/menapov"
 
 
 
@@ -28,7 +27,6 @@ figures_dir <- "PATH"
 UTM_JOR <- '+init=epsg:3394'
 UTM_LBN <- '+init=epsg:32637'
 UTM_YEM <- '+init=epsg:5836'
-
 N_CORES <- 2
 
 # LIBRARIES ====================================================================
@@ -49,8 +47,11 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                "dtplyr","expss","h3jsr", "spdplyr", "janitor",
                "tidygraph", "sparklyr", "styler","remotes",
                "h3","arrow","fs","jsonlite", "geodata", "osrm", 
-               "stplanr", "exactextractr", "rjson", "patchwork", "ggmap")
+               "stplanr", "exactextractr", "rjson", "patchwork", "ggmap",
+               "progress")
 
-##installing velox
-install_github("hunzikp/velox")
-library(velox)
+# install.packages("devtools")
+#devtools::install_github("ramarty/blackmarbler")
+#library(blackmarbler)
+
+
