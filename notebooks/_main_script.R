@@ -16,6 +16,7 @@ local_dir   <- "//MENAPOV/menapov"
 
 #### Data
 lbn_file_path <- file.path(local_dir,"LBN","GEO")
+yem_file_path <- file.path(local_dir,"YEM","GEO")
 
 #### Overleaf
 tables_dir  <- "PATH"
@@ -47,11 +48,4 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                "h3","arrow","fs","jsonlite", "geodata", "osrm", 
                "stplanr", "exactextractr", "rjson", "patchwork", "ggmap")
 
-# install.packages("devtools")
-#devtools::install_github("ramarty/blackmarbler")
-library(blackmarbler)
-
-## Importing functions
-source("https://raw.githubusercontent.com/ramarty/fast-functions/master/R/functions_in_chunks.R")
-source("https://raw.githubusercontent.com/ramarty/rgeos_chunks/master/R/rgeos_chunks.R")
 
