@@ -3,6 +3,7 @@
 
 # Load Data ---------------------------------------------------------------
 # Step 1: Read shapefile
+
 # yemen <- readRDS(file.path(yem_file_path,
 #                            "Boundaries",
 #                            "final",
@@ -16,9 +17,8 @@
 #                                  "monthly", 
 #                                  "yemen_viirs_raw_monthly_start_201204_end_202303_avg_rad.tif"))
 
-viirs_all <- stack("/Users/chitrab/Downloads/yemen_viirs_corrected_monthly_start_201401_end_202303_avg_rad.tif")
-
-yemen <- readRDS("/Users/chitrab/Downloads/yem_landuse_clusters.Rds")
+#viirs_all <- stack("/Users/chitrab/Downloads/yemen_viirs_corrected_monthly_start_201401_end_202303_avg_rad.tif")
+#yemen <- readRDS("/Users/chitrab/Downloads/yem_landuse_clusters.Rds")
 
 # Extract VIIRS ----------------------------------------------------------------
 viirs_stacked_df <- lapply(1:109, function(i){
@@ -33,6 +33,19 @@ viirs_stacked_df <- lapply(1:109, function(i){
   # 
   
   viirs <- raster("/Users/chitrab/Downloads/yemen_viirs_corrected_monthly_start_201401_end_202303_avg_rad.tif",i) %>% velox()
+
+
+# Extract VIIRS ----------------------------------------------------------------
+viirs_stacked_df <- lapply(1:130, function(i){
+  
+  print(i)
+  
+  viirs <- raster(file.path(yem_file_path, 
+                             "Nighttime_Lights", 
+                             "raw", 
+                             "monthly", 
+                             "yemen_viirs_raw_monthly_start_201204_end_202303_avg_rad.tif"), i) %>% velox()
+  
 
   viirs_mean <- viirs$extract(sp = yemen, fun=function(x) mean(x, na.rm=T))
   
@@ -64,13 +77,18 @@ for(i in unique(viirs_stacked_df$viirs_time_id)){
 #### Add Data
 yemen_df <- merge(yemen@data, viirs_stacked_df, by = "uid")
 
+
 #Export -----------------------------------------------------------------------
-# saveRDS(yemen_df, file.path(yem_file_path,
-#                             "Nighttime_Lights",
-#                             "final",
-#                             "yem_landuse_clusters_viirs_monthly.Rds"))
+saveRDS(yemen_df, file.path(yem_file_path,
+                            "Nighttime_Lights",
+                            "final",
+                            "yem_landuse_clusters_viirs_monthly.Rds"))
 
-saveRDS(yemen_df,
-        "/Users/chitrab/Downloads/yem_landuse_clusters_viirs_monthly.Rds")
 
-write.csv(yemen_df,"/Users/chitrab/Downloads/yem_landuse_clusters_viirs_monthly.csv")
+#write.csv(yemen_df,"/Users/chitrab/Downloads/yem_landuse_clusters_viirs_monthly.csv")
+
+write.csv(yemen_df,
+          file.path(yem_file_path,
+          "Nighttime_Lights",
+          "final",
+          "yem_landuse_clusters_viirs_monthly.csv"))

@@ -51,11 +51,16 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                "stplanr", "exactextractr", "rjson", "patchwork", "ggmap",
                "progress")
 
-##installing velox
-install_github("hunzikp/velox")
-library(velox)
+# ##installing velox
+# install_github("hunzikp/velox")
+# library(velox)
+# 
+# ##installing h3 for R
+# remotes::install_github("crazycapivara/h3-r")
 
-##installing h3 for R
-remotes::install_github("crazycapivara/h3-r")
+# install.packages("devtools")
+#devtools::install_github("ramarty/blackmarbler")
+#library(blackmarbler)
+
 
 
