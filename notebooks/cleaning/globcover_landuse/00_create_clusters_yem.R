@@ -17,7 +17,7 @@ urban_constant <- raster(file.path(yem_file_path,
 yemen <- spTransform(yemen, CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 "))
 
 ##Globcover
-# Create a raster that is 1 if urban in any time period
+# Create a raster that is 1 if urban in any time period, urban >= 20
 urban_constant[] <- as.numeric(urban_constant[] %in% c(20))
 
 
@@ -66,6 +66,7 @@ points_sp <- spTransform(points_sp, CRS(UTM_YEM))
 points <- as.data.frame(points_sp)
 
 ## Clusters
+##threshold of 10000 to create the cluster size
 points_dist <- points[,c("lat", "lon")] %>% dist()
 clumps_sp$wardheirch_clust_id <- hclust(points_dist, method = "ward.D2") %>%
   cutree(h = 10000)
@@ -78,8 +79,7 @@ clumps_sp@data <- clumps_sp@data %>%
   dplyr::mutate(cell_id = 1:n())
 
 # # Export -----------------------------------------------------------------------
-# We save "polygon" and "points" file, where "points" is actually just the polygon.
-# We do this to make compatible with some scripts that also process grid data
+# We save "polygon". We do this to make compatible with some scripts that also process grid data
 
 
 ## Dataframe with number of cells
@@ -102,6 +102,7 @@ st_write(clumps_sf, file.path(yem_file_path,
                              "final",
                              "polygons.geojson"),delete_layer = TRUE)
 
+###check polygons
 leaflet() %>%
   addTiles() %>%
   addPolygons(data = clumps_sf)
