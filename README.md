@@ -1,7 +1,7 @@
-# Geospatial Poverty and Vulnerability Assessment - MENA Poverty and Equity Group
+# Geospatial Analysis - MENA Poverty and Equity Group
 
 ## Overview
-The Geospatial Poverty and Vulnerability Assessment repository aims to centrally maintain cleaning and analysis of poverty and vulnerability assessments that leverage geospatial data conducted by the Poverty and Equity Group in the MENA region.
+The Geospatial Analysis repository aims to centrally maintain cleaning and analysis of data that leverage geospatial data conducted by the Poverty and Equity Group in the MENA region.
 
 ## Features 
 - Import and manage large geospatial datasets
