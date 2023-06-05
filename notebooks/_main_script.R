@@ -14,6 +14,7 @@ local_dir   <- "//MENAPOV/menapov"
 
 
 
+
 #### Data
 lbn_file_path <- file.path(local_dir,"LBN","GEO")
 yem_file_path <- file.path(local_dir,"YEM","GEO")
@@ -50,8 +51,11 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                "stplanr", "exactextractr", "rjson", "patchwork", "ggmap",
                "progress")
 
-# install.packages("devtools")
-#devtools::install_github("ramarty/blackmarbler")
-#library(blackmarbler)
+##installing velox
+install_github("hunzikp/velox")
+library(velox)
+
+##installing h3 for R
+remotes::install_github("crazycapivara/h3-r")
 
 
