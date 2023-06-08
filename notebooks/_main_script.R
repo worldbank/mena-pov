@@ -10,7 +10,8 @@
 # FILEPATHS ====================================================================
 #### Root
 github_dir  <- "C:/Users/wb569257/OneDrive - WBG/Documents/GitHub"
-local_dir   <- "//MENAPOV/menapov"
+local_dir  <- "//MENAPOV/menapov"
+
 
 
 
@@ -18,6 +19,7 @@ local_dir   <- "//MENAPOV/menapov"
 #### Data
 lbn_file_path <- file.path(local_dir,"LBN","GEO")
 yem_file_path <- file.path(local_dir,"YEM","GEO")
+mena_file_path <- file.path(local_dir,"MENA","GEO")
 
 #### Overleaf
 tables_dir  <- "PATH"
@@ -49,7 +51,10 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                "tidygraph", "sparklyr", "styler","remotes",
                "h3","arrow","fs","jsonlite", "geodata", "osrm", 
                "stplanr", "exactextractr", "rjson", "patchwork", "ggmap",
-               "progress")
+               "progress",'haven','dplyr', 'reshape2', 'tidyverse', 
+               'pracma','lubridate', 'scales', 'stringr', 'tidymodels', 
+               'flextable', 'rsample', 'hdm', 'pROC', 'glmnet',
+               'tibble',)
 
 # ##installing velox
 # install_github("hunzikp/velox")
