@@ -1,4 +1,7 @@
-# Extract Landslide  for 2020 - Lebanon
+# Extract CO2
+
+# Extract Drought for 2020 - Lebanon
+
 
 # Load segment shapefile --------------------------------------------------
 seg1 <- st_read(file.path(lbn_file_path,
@@ -26,26 +29,29 @@ seg2 <- st_read(file.path(lbn_file_path,
 merged_seg <- rbind(seg1, seg2)
 
 
-# Load earthquake data ----------------------------------------------------
-earthquake <- read_csv(file.path(mena_file_path,
-                       "Hazards",
-                       "Earthquake_USGS.csv"))
+
+# Load drought rasters and extract raster values --------------------------
+
+raster <- raster(file.path(mena_file_path,
+                          "Hazards",
+                          "SEDAC_PM2_5",
+                          "sdei-global-annual-gwr-pm2-5-modis-misr-seawifs-aod-v4-gl-03-2019.tif"))
 
 
-# Subset Earthquake data --------------------------------------------------
-# Convert timestamp to POSIXlt object
-date <- as.POSIXlt(earthquake$time)
 
-# Extract the year
-earthquake$year <- date$year + 1900
+# Match projection --------------------------------------------------------
 
-#filter out data for 2020
-earthquake_2020 <- earthquake %>%
-  filter(year == 2020)
+# Reproject the raster to match the shapefile
+raster_proj <- projectRaster(raster, crs = st_crs(merged_seg))
 
-# convert to sf object
-coordinates <- st_as_sf(earthquake_2020, coords = c("longitude", "latitude"), crs = st_crs(merged_seg))
+# Clip the raster to the extent of the shapefile
+cropped_raster <- crop(raster_proj, merged_seg)
 
-# Extract earthquake data -------------------------------------------------
-overlay <- st_intersection(merged_seg,coordinates)
+
+# Extract raster values ---------------------------------------------------
+
+
+
+# Extract raster values for the segments
+values <- extract(cropped_raster, merged_seg, fun = mean, na.rm = T, df = F)
 
