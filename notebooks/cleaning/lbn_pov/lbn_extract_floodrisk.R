@@ -38,52 +38,93 @@ raster_list <- list()
 extracted_values <- list()
 
 
-# Create empty dataframes for fluvial and pluvial data
-fluvial_df <- data.frame()
-pluvial_df <- data.frame()
-
-for (return_val in return_list) {
-  # Process fluvial rasters
-  pattern_fluvial <- paste0("FU_", return_val, ".tif")
-  files_fluvial <- list.files(path = folder_path_fluvial, pattern = pattern_fluvial, full.names = TRUE)
+for (return in return_list) {
+  pattern <- paste0("FU_", return, ".tif")
   
-  # Read and process fluvial rasters
-  for (file in files_fluvial) {
+  # Filter raster files based on pattern and date
+  files <- list.files(path = folder_path_fluvial, pattern = pattern, full.names = TRUE)
+  
+  # Read the raster files
+  for (file in files) {
     raster <- raster(file)
-    raster_list[[return_val]] <- raster
+    raster_list[[return]] <- raster
     
-    cropped_raster <- crop(projectRaster(raster, crs = st_crs(merged_seg)), merged_seg)
-    values <- extract(cropped_raster, merged_seg, fun = mean, na.rm = TRUE, df = FALSE)
-    extracted_values[[return_val]] <- values
+    # Reproject the raster to match the shapefile
+    raster_proj <- projectRaster(raster, crs = st_crs(merged_seg))
     
-    # Create a dataframe for the current fluvial segment
-    fluvial_segment_df <- data.frame(id = return_val, fluvial_values = values)
-    fluvial_df <- rbind(fluvial_df, fluvial_segment_df)
-  }
-  
-  # Process pluvial rasters
-  pattern_pluvial <- paste0("P_", return_val, ".tif")
-  files_pluvial <- list.files(path = folder_path_pluvial, pattern = pattern_pluvial, full.names = TRUE)
-  
-  # Read and process pluvial rasters
-  for (file in files_pluvial) {
-    raster <- raster(file)
-    raster_list[[return_val]] <- raster
+    # Clip the raster to the extent of the shapefile
+    cropped_raster <- crop(raster_proj, merged_seg)
     
-    cropped_raster <- crop(projectRaster(raster, crs = st_crs(merged_seg)), merged_seg)
-    values <- extract(cropped_raster, merged_seg, fun = mean, na.rm = TRUE, df = FALSE)
-    extracted_values[[return_val]] <- values
-    
-    # Create a dataframe for the current pluvial segment
-    pluvial_segment_df <- data.frame(id = return_val, pluvial_values = values)
-    pluvial_df <- rbind(pluvial_df, pluvial_segment_df)
+    # Extract raster values for the segments
+    values <- extract(cropped_raster, merged_seg, fun = mean, na.rm = T, df = F)
+    extracted_values[[return]] <- values
   }
 }
 
-# Perform left join on segment_id
-merged_df <- merge(fluvial_df, pluvial_df, by = "id", all.x = TRUE)
+# Convert the extracted raster values to a data frame
+fluvial_df <- as.data.frame(do.call(cbind, lapply(extracted_values, function(x) unlist(x, use.names = FALSE))))
+
+# Rename the columns of the data frame
+colnames(fluvial_df) <- return_list
+
+# Add a unique ID column
+fluvial_df$id <- seq_len(nrow(fluvial_df))
+
+# Rename the columns of the data frame with date_list
+colnames(fluvial_df) <- c(paste0("FU_", return_list),"id")
+
+## Pluvial
+folder_path_pluvial <- file.path(lbn_file_path, "Hazards", "raw", "fathom_floods", "pluvial")
+
+return_list <- c("1in5", "1in10", "1in20", "1in50", "1in75", "1in100", "1in250", "1in500", "1in1000")
+
+raster_list <- list()
+extracted_values <- list()
 
 
+for (return in return_list) {
+  pattern <- paste0("P_", return, ".tif")
+  
+  # Filter raster files based on pattern and date
+  files <- list.files(path = folder_path_pluvial, pattern = pattern, full.names = TRUE)
+  
+  # Read the raster files
+  for (file in files) {
+    raster <- raster(file)
+    raster_list[[return]] <- raster
+    
+    # Reproject the raster to match the shapefile
+    raster_proj <- projectRaster(raster, crs = st_crs(merged_seg))
+    
+    # Clip the raster to the extent of the shapefile
+    cropped_raster <- crop(raster_proj, merged_seg)
+    
+    # Extract raster values for the segments
+    values <- extract(cropped_raster, merged_seg, fun = mean, na.rm = T, df = F)
+    extracted_values[[return]] <- values
+  }
+}
+
+# Convert the extracted raster values to a data frame
+pluvial_df <- as.data.frame(do.call(cbind, lapply(extracted_values, function(x) unlist(x, use.names = FALSE))))
+
+# Rename the columns of the data frame
+colnames(pluvial_df) <- return_list
+
+# Add a unique ID column
+pluvial_df$id <- seq_len(nrow(pluvial_df))
+
+# Rename the columns of the data frame with date_list
+colnames(pluvial_df) <- c(paste0("P_", return_list),"id")
 
 
+# Merge -------------------------------------------------------------------
+flood_df <- merge(fluvial_df, pluvial_df, by = "id")
+
+
+# Export ------------------------------------------------------------------
+saveRDS(flood_df,file.path(lbn_file_path,
+                           "Hazards",
+                           "final",
+                           "floodrisk.Rds"))
 
