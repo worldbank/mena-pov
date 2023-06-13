@@ -1,3 +1,5 @@
+## Extract NO2
+
 # Extract PM2.5
 
 # Load segment shapefile --------------------------------------------------
@@ -29,8 +31,8 @@ merged_seg <- rbind(seg1, seg2)
 # Load raster -------------------------------------------------------------
 raster <- raster(file.path(mena_file_path,
                            "Hazards",
-                           "SEDAC_PM2_5",
-                           "sdei-global-annual-gwr-pm2-5-modis-misr-seawifs-aod-v4-gl-03-2019.tif"))
+                           "NO2",
+                           "2020_NO2.tif"))
 
 
 # Projection --------------------------------------------------------------
@@ -57,17 +59,17 @@ data[is.na(data)] <- data_interpolated_bilinear[is.na(data)]
 data$id <- seq_len(nrow(data))
 
 # Add year column
-data$year <- 2019
+data$year <- 2020
 
 # rename column
-names(data)[names(data) == "V1"] <- "pm2_5_value"
+names(data)[names(data) == "V1"] <- "no2_value"
 
 
 # Export ------------------------------------------------------------------
 saveRDS(data, file.path(lbn_file_path,
-                               "Hazards",
-                               "final",
-                               "pm2_5_2020.Rds"))
+                        "Hazards",
+                        "final",
+                        "no2_2020.Rds"))
 
 
 
