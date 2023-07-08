@@ -5,7 +5,7 @@
 yemen <- readOGR(file.path(yem_file_path, 
                            "Boundaries", 
                            "raw"), 
-                 layer = "gadm41_YEM_0")
+                 layer = "gadm41_YEM_2")
 
 urban_constant <- raster(file.path(yem_file_path, 
                                    "Landcover",

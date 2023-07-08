@@ -4,21 +4,18 @@
 # Load Data ---------------------------------------------------------------
 # Step 1: Read shapefile
 
-# yemen <- readRDS(file.path(yem_file_path,
-#                            "Boundaries",
-#                            "final",
-#                            "yem_landuse_clusters.Rds"))
-# 
-# 
-# # Step 2: Load VIIRS data
-# viirs_all <- raster(file.path(yem_file_path, 
-#                                  "Nighttime_Lights", 
-#                                  "raw", 
-#                                  "monthly", 
-#                                  "yemen_viirs_raw_monthly_start_201204_end_202303_avg_rad.tif"))
+yemen <- readRDS(file.path(yem_file_path,
+                           "Boundaries",
+                           "final",
+                           "yem_landuse_clusters.Rds"))
 
-#viirs_all <- stack("/Users/chitrab/Downloads/yemen_viirs_corrected_monthly_start_201401_end_202303_avg_rad.tif")
-#yemen <- readRDS("/Users/chitrab/Downloads/yem_landuse_clusters.Rds")
+# Step 2: Load VIIRS data
+viirs_all <- raster(file.path(yem_file_path,
+                                 "Nighttime_Lights",
+                                 "raw",
+                                 "monthly",
+                                 "yemen_viirs_raw_monthly_start_201204_end_202303_avg_rad.tif"))
+
 
 
 # Extract VIIRS ----------------------------------------------------------------
@@ -70,11 +67,10 @@ saveRDS(yemen_df, file.path(yem_file_path,
                             "final",
                             "yem_landuse_clusters_viirs_monthly.Rds"))
 
-
-#write.csv(yemen_df,"/Users/chitrab/Downloads/yem_landuse_clusters_viirs_monthly.csv")
-
 write.csv(yemen_df,
           file.path(yem_file_path,
           "Nighttime_Lights",
           "final",
           "yem_landuse_clusters_viirs_monthly.csv"))
+
+
