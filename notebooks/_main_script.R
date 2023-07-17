@@ -54,7 +54,7 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                "progress",'haven','dplyr', 'reshape2', 'tidyverse', 
                'pracma','lubridate', 'scales', 'stringr', 'tidymodels', 
                'flextable', 'rsample', 'hdm', 'pROC', 'glmnet',
-               'tibble',"xlsx")
+               'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS")
 
 # ##installing velox
 # install_github("hunzikp/velox")
@@ -68,4 +68,6 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
 #library(blackmarbler)
 
 
-
+library("devtools")
+install_github("kassambara/factoextra")
+library("factoextra")
