@@ -14,8 +14,6 @@ local_dir  <- "//MENAPOV/menapov"
 
 
 
-
-
 #### Data
 lbn_file_path <- file.path(local_dir,"LBN","GEO")
 yem_file_path <- file.path(local_dir,"YEM","GEO")
@@ -54,7 +52,8 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                "progress",'haven','dplyr', 'reshape2', 'tidyverse', 
                'pracma','lubridate', 'scales', 'stringr', 'tidymodels', 
                'flextable', 'rsample', 'hdm', 'pROC', 'glmnet',
-               'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS")
+               'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS",
+               "classInt", "RColorBrewer", "splines","ggeffects")
 
 # ##installing velox
 # install_github("hunzikp/velox")
