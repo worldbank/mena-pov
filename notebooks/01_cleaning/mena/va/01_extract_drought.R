@@ -1,9 +1,11 @@
+## CDI
+
 library(raster)
 library(sf)
 
 # Set working directory and list raster files
-setwd("M:/MENA/GEO/Hazards/CO2/raw/monthly")
-raster_files <- list.files(pattern = "\\.nc4$")
+setwd("M:/MENA/GEO/Hazards/Drought(CDI)/raw")
+raster_files <- list.files(pattern = "\\.tif$")
 MENA_shp <- st_read(file.path(mena_file_path,
                               "Boundaries",
                               "MENA_ADM2.shp"))
@@ -34,29 +36,17 @@ for (i in seq_along(raster_files)) {
   cropped_rast <- crop(rast, extent(MENA_sp))
   
   # Extract the mean values using bilinear interpolation
-  results <- extract(cropped_rast, MENA_shp, method = "bilinear", fun = mean, na.rm = TRUE)
+    results <- extract(cropped_rast, MENA_shp, method = "bilinear", fun = mean, na.rm = TRUE)
   
-  df_results <- data.frame(ID_ADM = MENA_shp$ID_ADM, Mean = results)
-  df_results$month_year <- sub(".*_month_(\\d{6}).*", "\\1", rast_file)
-  # 
-  # # Compute statistics for each list of values and associate with ID_ADM
-  # stats_df <- data.frame(
-  #   ID_ADM = MENA_shp$ID_ADM,
-  #   Mean = sapply(values_list, function(vals) mean(vals, na.rm = TRUE)),
-  #   Min = sapply(values_list, function(vals) min(vals, na.rm = TRUE)),
-  #   Max = sapply(values_list, function(vals) max(vals, na.rm = TRUE)),
-  #   Median = sapply(values_list, function(vals) median(vals, na.rm = TRUE)),
-  #   SD = sapply(values_list, function(vals) sd(vals, na.rm = TRUE)),
-  #   month_year = sub(".*_month_(\\d{6}).*", "\\1", rast_file)
-  # )
-  # 
+    df_results <- data.frame(ID_ADM = MENA_shp$ID_ADM, Mean = results)
+
+  
   # Add the dataframe to the list
   df_list[[rast_file]] <- df_results
   
   # Update the progress bar
   setTxtProgressBar(pb, i)
 }
-
 
 # Close the progress bar
 close(pb)
@@ -69,9 +59,11 @@ head(final_df)
 
 
 # Clean data --------------------------------------------------------------
+final_df$month_year <-  str_extract(rownames(final_df), "\\d{6}")
+
 final_df_clean <- final_df %>%
-  mutate(indicator = "co2",
-         source = "nasa_oco2",
+  mutate(indicator = "cdi",
+         source = "icba",
          year = as.numeric(substr(month_year, 1, 4)),
          month = as.numeric(substr(month_year, 5, 6))) %>%
   clean_names() %>%
@@ -85,9 +77,9 @@ rownames(final_df_clean) <- NULL
 # Export ------------------------------------------------------------------
 saveRDS(final_df_clean, file.path(mena_file_path,
                                   "Hazards",
-                                  "CO2",
+                                  "Drought(CDI)",
                                   "final",
-                                  "CO2_201501_202201.Rds"))
+                                  "cdi_200101_202012.Rds"))
 
 
 
