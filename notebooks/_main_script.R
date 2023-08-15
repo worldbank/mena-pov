@@ -10,7 +10,8 @@
 # FILEPATHS ====================================================================
 #### Root
 github_dir  <- "C:/Users/wb569257/OneDrive - WBG/Documents/GitHub"
-local_dir  <- "//MENAPOV/menapov"
+#local_dir  <- "//MENAPOV/menapov"
+local_dir   <- "M:/"
 
 
 
