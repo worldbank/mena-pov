@@ -38,18 +38,8 @@ for (i in seq_along(raster_files)) {
   
   df_results <- data.frame(ID_ADM = MENA_shp$ID_ADM, Mean = results)
   df_results$month_year <- sub(".*_month_(\\d{6}).*", "\\1", rast_file)
-  # 
-  # # Compute statistics for each list of values and associate with ID_ADM
-  # stats_df <- data.frame(
-  #   ID_ADM = MENA_shp$ID_ADM,
-  #   Mean = sapply(values_list, function(vals) mean(vals, na.rm = TRUE)),
-  #   Min = sapply(values_list, function(vals) min(vals, na.rm = TRUE)),
-  #   Max = sapply(values_list, function(vals) max(vals, na.rm = TRUE)),
-  #   Median = sapply(values_list, function(vals) median(vals, na.rm = TRUE)),
-  #   SD = sapply(values_list, function(vals) sd(vals, na.rm = TRUE)),
-  #   month_year = sub(".*_month_(\\d{6}).*", "\\1", rast_file)
-  # )
-  # 
+
+  
   # Add the dataframe to the list
   df_list[[rast_file]] <- df_results
   

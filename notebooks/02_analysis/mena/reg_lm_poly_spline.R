@@ -82,34 +82,34 @@ poly_rwi <- data.frame(
 )
 
 poly_rwi
-# Run a GAM Spline --------------------------------------------------------
-library(mgcv)
-model_gam_rwi <- gam(log_ntl ~ CO2_mean_2020 +
-  s(log_no2) +
-  s(log_pm) +
-  FLOOD_2016_2020 +
-  QUAKE_2016_2020 +
-  Loss_sqkm_2016_2020 +
-  CDI_2020_mean +
-  PRECIP_DIFF_2016_2020 +
-  s(TEMP_DIFF_2016_2020) +
-  s(road_raw) +
-  s(URBAN_2020) +
-  s(RWI_mean), data = train.data)
-
-
-# Print a summary of the model
-summary(model_gam_rwi)
-
-# Make predictions
-predictions_gam_rwi<- model_gam_rwi %>% predict(test.data)
-
-# Model performance
-gam_rwi <- data.frame(
-  RMSE = RMSE(predictions_gam_rwi, test.data$log_ntl, na.rm = T),
-  R2 = R2(predictions_gam_rwi, test.data$log_ntl, na.rm = T)
-)
-gam_rwi
+# # Run a GAM Spline --------------------------------------------------------
+# library(mgcv)
+# model_gam_rwi <- gam(log_ntl ~ CO2_mean_2020 +
+#   s(log_no2) +
+#   s(log_pm) +
+#   FLOOD_2016_2020 +
+#   QUAKE_2016_2020 +
+#   Loss_sqkm_2016_2020 +
+#   CDI_2020_mean +
+#   PRECIP_DIFF_2016_2020 +
+#   s(TEMP_DIFF_2016_2020) +
+#   s(road_raw) +
+#   s(URBAN_2020) +
+#   s(RWI_mean), data = train.data)
+# 
+# 
+# # Print a summary of the model
+# summary(model_gam_rwi)
+# 
+# # Make predictions
+# predictions_gam_rwi<- model_gam_rwi %>% predict(test.data)
+# 
+# # Model performance
+# gam_rwi <- data.frame(
+#   RMSE = RMSE(predictions_gam_rwi, test.data$log_ntl, na.rm = T),
+#   R2 = R2(predictions_gam_rwi, test.data$log_ntl, na.rm = T)
+# )
+# gam_rwi
 
 ############################################### WITHOUT RWI #################
 
@@ -189,41 +189,41 @@ poly_no_rwi <- data.frame(
 poly_no_rwi
 
 # Run a GAM Spline --------------------------------------------------------
-model_gam_no_rwi <- gam(log_ntl ~ CO2_mean_2020 +
-                       s(log_no2) +
-                       s(log_pm) +
-                       FLOOD_2016_2020 +
-                       QUAKE_2016_2020 +
-                       Loss_sqkm_2016_2020 +
-                       CDI_2020_mean +
-                       PRECIP_DIFF_2016_2020 +
-                       s(TEMP_DIFF_2016_2020) +
-                       s(road_raw) +
-                       s(URBAN_2020), data = train.data)
-
-
-# Print a summary of the model
-summary(model_gam_no_rwi)
-
-# Make predictions
-predictions_gam_no_rwi<- model_gam_no_rwi %>% predict(test.data)
-
-# Model performance
-gam_no_rwi <- data.frame(
-  RMSE = RMSE(predictions_gam_no_rwi, test.data$log_ntl, na.rm = T),
-  R2 = R2(predictions_gam_no_rwi, test.data$log_ntl, na.rm = T)
-)
-gam_no_rwi
+# model_gam_no_rwi <- gam(log_ntl ~ CO2_mean_2020 +
+#                        s(log_no2) +
+#                        s(log_pm) +
+#                        FLOOD_2016_2020 +
+#                        QUAKE_2016_2020 +
+#                        Loss_sqkm_2016_2020 +
+#                        CDI_2020_mean +
+#                        PRECIP_DIFF_2016_2020 +
+#                        s(TEMP_DIFF_2016_2020) +
+#                        s(road_raw) +
+#                        s(URBAN_2020), data = train.data)
+# 
+# 
+# # Print a summary of the model
+# summary(model_gam_no_rwi)
+# 
+# # Make predictions
+# predictions_gam_no_rwi<- model_gam_no_rwi %>% predict(test.data)
+# 
+# # Model performance
+# gam_no_rwi <- data.frame(
+#   RMSE = RMSE(predictions_gam_no_rwi, test.data$log_ntl, na.rm = T),
+#   R2 = R2(predictions_gam_no_rwi, test.data$log_ntl, na.rm = T)
+# )
+# gam_no_rwi
 
 
 # Combine into one table --------------------------------------------------
 
 # Add a new column with the dataset names
 lm_rwi$Dataset <- "lm_rwi"
-gam_rwi$Dataset <- "gam_rwi"
+#gam_rwi$Dataset <- "gam_rwi"
 poly_rwi$Dataset <- "poly_rwi"
 lm_no_rwi$Dataset <- "lm_no_rwi"
-gam_no_rwi$Dataset <- "gam_no_rwi"
+#gam_no_rwi$Dataset <- "gam_no_rwi"
 poly_no_rwi$Dataset <- "poly_no_rwi"
 
 # Assuming you have the 'combined_data' dataset as described
@@ -232,7 +232,7 @@ poly_no_rwi$Dataset <- "poly_no_rwi"
 install.packages("xtable")
 library(xtable)
 
-combined_data <- rbind(lm_rwi,poly_rwi,gam_rwi,lm_no_rwi,poly_no_rwi,gam_no_rwi)
+combined_data <- rbind(lm_rwi,poly_rwi,lm_no_rwi,poly_no_rwi)
 
 # Add a new column indicating with or without RWI
 combined_data$RWI_Status <- ifelse(grepl("no_rwi", combined_data$Dataset), "Without RWI", "With RWI")
@@ -257,18 +257,18 @@ library(texreg)
 # Convert each model to a texreg object
 texreg_lm_rwi <- extract(model_lm_rwi)
 texreg_poly_rwi <- extract(model_poly_rwi)
-texreg_gam_rwi <- extract(model_gam_rwi)
+#texreg_gam_rwi <- extract(model_gam_rwi)
 
 texreg_lm_no_rwi <- extract(model_lm_no_rwi)
 texreg_poly_no_rwi <- extract(model_poly_no_rwi)
-texreg_gam_no_rwi <- extract(model_gam_no_rwi)
+#texreg_gam_no_rwi <- extract(model_gam_no_rwi)
 
 # Combine all the texreg objects into a list
-model_list <- list(texreg_lm_rwi, texreg_poly_rwi, texreg_gam_rwi,
-                   texreg_lm_no_rwi, texreg_poly_no_rwi, texreg_gam_no_rwi)
+model_list <- list(texreg_lm_rwi, texreg_poly_rwi,
+                   texreg_lm_no_rwi, texreg_poly_no_rwi)
 
 # Create a vector of model names for the column labels
-model_names <- c("Linear(with RWI)", "Poly(With RWI)", "GAM(With RWI)", "Linear(w/o RWI)", "Poly(w/o RWI)", "GAM (w/o RWI)")
+model_names <- c("Linear(with RWI)", "Poly(With RWI)", "Linear(w/o RWI)", "Poly(w/o RWI)")
 
 # Format the list of models as LaTeX code
 latex_code <- texreg(model_list, custom.model.names = model_names)
