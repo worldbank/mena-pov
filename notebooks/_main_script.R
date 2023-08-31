@@ -17,6 +17,8 @@ local_dir   <- "M:/"
 
 #### Data
 lbn_file_path <- file.path(local_dir,"LBN","GEO")
+lbn_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/lbn_geospatial_analysis")
+
 yem_file_path <- file.path(local_dir,"YEM","GEO")
 mena_file_path <- file.path(local_dir,"MENA","GEO")
 
@@ -54,7 +56,7 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                'pracma','lubridate', 'scales', 'stringr', 'tidymodels', 
                'flextable', 'rsample', 'hdm', 'pROC', 'glmnet',
                'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS",
-               "classInt", "RColorBrewer", "splines","ggeffects")
+               "classInt", "RColorBrewer", "splines","ggeffects", "exactextractr")
 
 # ##installing velox
 # install_github("hunzikp/velox")

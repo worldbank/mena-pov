@@ -37,6 +37,13 @@ ggsave(filename = file.path(lbn_onedrive_dir,
 head(df)
 
 # Correlation Plot --------------------------------------------------------
+df %>%
+  ggplot(aes(y = ntl_mean_prop2, x = gdp_constant)) +
+  geom_point() +
+  theme_classic2()
+
+
+
 
 
 # Function to create a correlation plot

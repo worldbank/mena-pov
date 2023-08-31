@@ -1,49 +1,45 @@
 # Create datasets that include:
-# 2. Population, NTL, NDVI (district level)
-# 3. Expenditure, NTL (segment level)
+# NTL at municipality level
 
 
 # Load data ---------------------------------------------------------------
-viirs_avg_rad <- stack(file.path(lbn_file_path,
+r <- stack(file.path(lbn_file_path,
                                  "Nighttime_Lights",
                                  "raw", 
                                  "monthly", 
                                  "lebanon_viirs_raw_monthly_start_201204_end_202303_avg_rad.tif"))
 
-district_sp <- st_read(file.path(lbn_file_path,
+municipality_sp <- st_read(file.path(lbn_file_path,
                                  "Boundaries",
                                  "gadm41_LBN_3.shp")) %>% as_Spatial()
 
 
-# Extract VIIRS ----------------------------------------------------------------
-viirs_stacked_df <- lapply(1:130, function(i){
-  
-  print(i)
-  
-  viirs <- raster(file.path(data_file_path,
-                            "viirs",
-                            "rawdata",
-                            "monthly",
-                            "iraq_viirs_raw_monthly_start_201204_avg_rad.tif"), i) %>% velox()
-  
-  viirs_mean <- viirs$extract(sp = iraq_adm3, fun=function(x) mean(x, na.rm=T))
-  
-  viirs_df <- data.frame(viirs_mean = viirs_mean,
-                         uid = iraq_adm3$uid,
-                         viirs_time_id = i)
-  
-  return(viirs_df)
-}) %>% bind_rows()
+
+# Extract -----------------------------------------------------------------
+r_t2 <- r
+r_t2[] <- as.numeric(r_t2[] >= 2)
+
+
+# Repeat this for ntl > 2 -------------------------------------------------
+
+ntl_mean_prop2 <- exact_extract(r_t2, municipality_sp, fun = "mean")
+
+ntl_mean_prop2_melted <- ntl_mean_prop2 %>%
+  mutate(uid = 1:n()) %>%
+  melt(, id = "uid") %>%
+  mutate(variable = gsub("mean.avg_rad_","",as.numeric(variable)))
+
+
 
 #### Add year / month
 year <- 2012
 month <- 4
-viirs_stacked_df$year <- NA
-viirs_stacked_df$month <- NA
-for(i in unique(viirs_stacked_df$viirs_time_id)){
+ntl_mean_prop2_melted$year <- NA
+ntl_mean_prop2_melted$month <- NA
+for(i in unique(ntl_mean_prop2_melted$variable)){
   
-  viirs_stacked_df$year[viirs_stacked_df$viirs_time_id %in% i]  <- year 
-  viirs_stacked_df$month[viirs_stacked_df$viirs_time_id %in% i] <- month 
+  ntl_mean_prop2_melted$year[ntl_mean_prop2_melted$variable %in% i]  <- year 
+  ntl_mean_prop2_melted$month[ntl_mean_prop2_melted$variable %in% i] <- month 
   
   month <- month + 1
   
@@ -53,12 +49,80 @@ for(i in unique(viirs_stacked_df$viirs_time_id)){
   }
 }
 
-#### Add Data
-iraq_adm3_df <- merge(iraq_adm3@data, viirs_stacked_df, by = "uid")
+ntl_mean_prop2_melted <- ntl_mean_prop2_melted %>%
+  select(-variable) %>%
+  rename("ntl_mean_prop2" = "value")
 
-# Export -----------------------------------------------------------------------
-saveRDS(iraq_adm3_df, file.path(data_file_path,
-                                "cities_towns",
-                                "finaldata",
-                                "individual_files",
-                                "irq_viirs_monthly.Rds"))
+
+# Merge with admin boundaries ---------------------------------------------
+municipality_sf <- municipality_sp %>%
+  st_as_sf() %>%
+  mutate(uid = 1:n()) %>%
+  left_join(ntl_mean_prop2_melted, by = "uid")
+
+
+
+# Extract population ------------------------------------------------------
+
+# Load Data ---------------------------------------------------------------
+setwd("M:/LBN/GEO/Population/raw")
+
+municipality_sp <- st_read(file.path(lbn_file_path,
+                                     "Boundaries",
+                                     "gadm41_LBN_3.shp")) %>% as_Spatial()
+
+
+
+rastlist <- list.files(path = "M:/LBN/GEO/Population/raw", pattern='.tif$', 
+                       all.files=TRUE, full.names=FALSE)
+
+#import all raster files in folder using lapply
+allrasters <- lapply(rastlist, raster)
+
+
+
+# Extract values ----------------------------------------------------------
+
+municipality_pop_2012 <- exact_extract(allrasters[[1]], municipality_sp, fun = "sum")
+municipality_pop_2013 <- exact_extract(allrasters[[2]], municipality_sp, fun = "sum")
+municipality_pop_2014 <- exact_extract(allrasters[[3]], municipality_sp, fun = "sum")
+municipality_pop_2015 <- exact_extract(allrasters[[4]], municipality_sp, fun = "sum")
+municipality_pop_2016 <- exact_extract(allrasters[[5]], municipality_sp, fun = "sum")
+municipality_pop_2017 <- exact_extract(allrasters[[6]], municipality_sp, fun = "sum")
+municipality_pop_2018 <- exact_extract(allrasters[[7]], municipality_sp, fun = "sum")
+municipality_pop_2019 <- exact_extract(allrasters[[8]], municipality_sp, fun = "sum")
+municipality_pop_2020 <- exact_extract(allrasters[[9]], municipality_sp, fun = "sum")
+
+
+municipality_pop_2012_2020 <- as.data.frame(cbind(municipality_pop_2012,
+                                    municipality_pop_2013,
+                                    municipality_pop_2014,
+                                    municipality_pop_2015,
+                                    municipality_pop_2016,
+                                    municipality_pop_2017,
+                                    municipality_pop_2018,
+                                    municipality_pop_2019,
+                                    municipality_pop_2020))
+
+municipality_pop_2012_2020_melted <- municipality_pop_2012_2020 %>%
+  mutate(uid = 1:n()) %>%
+  melt(.,id = "uid") %>%
+  mutate(year = as.numeric(gsub("municipality_pop_","",variable))) %>%
+  select(-variable) %>%
+  rename("population" = "value")
+
+
+# Merge NTL and population ------------------------------------------------
+merged_df <- ntl_mean_prop2_melted %>%
+  left_join(municipality_pop_2012_2020_melted, by = c("uid", "year"))
+
+
+
+# Export ------------------------------------------------------------------
+saveRDS(merged_df, file.path(lbn_file_path,
+                             "Nighttime_Lights",
+                             "final",
+                             "lbn_municipality_pop.Rds"))
+
+
+
