@@ -1,8 +1,5 @@
 ## CDI
 
-library(raster)
-library(sf)
-
 # Set working directory and list raster files
 setwd("M:/MENA/GEO/Hazards/Drought(CDI)/raw")
 raster_files <- list.files(pattern = "\\.tif$")

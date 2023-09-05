@@ -1,6 +1,3 @@
-library(raster)
-library(sf)
-
 # Set working directory and list raster files
 setwd("M:/MENA/GEO/Hazards/CO2/raw/monthly")
 raster_files <- list.files(pattern = "\\.nc4$")
@@ -10,12 +7,15 @@ MENA_shp <- st_read(file.path(mena_file_path,
 
 # Initialize an empty list to store the individual dataframes
 df_list <- list()
+raster_files
 
 # Initialize a progress bar
 pb <- txtProgressBar(min = 0, max = length(raster_files), style = 3)
 
+
+
 # Loop through each raster file
-for (i in seq_along(raster_files)) {
+for (i in 1:2) {
   rast_file <- raster_files[i]
   
   # Load the .nc4 file as a raster

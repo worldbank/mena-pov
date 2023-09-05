@@ -11,7 +11,7 @@
 #### Root
 github_dir  <- "C:/Users/wb569257/OneDrive - WBG/Documents/GitHub"
 #local_dir  <- "//MENAPOV/menapov"
-local_dir   <- "M:/"
+local_dir   <- "M:"
 
 
 
@@ -20,6 +20,9 @@ lbn_file_path <- file.path(local_dir,"LBN","GEO")
 lbn_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/lbn_geospatial_analysis")
 
 yem_file_path <- file.path(local_dir,"YEM","GEO")
+
+jor_file_path <- file.path(local_dir,"JOR","GEO")
+jor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/Jordan")
 mena_file_path <- file.path(local_dir,"MENA","GEO")
 
 #### Overleaf
@@ -56,18 +59,7 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                'pracma','lubridate', 'scales', 'stringr', 'tidymodels', 
                'flextable', 'rsample', 'hdm', 'pROC', 'glmnet',
                'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS",
-               "classInt", "RColorBrewer", "splines","ggeffects", "exactextractr")
-
-# ##installing velox
-# install_github("hunzikp/velox")
-# library(velox)
-# 
-# ##installing h3 for R
-# remotes::install_github("crazycapivara/h3-r")
-
-# install.packages("devtools")
-#devtools::install_github("ramarty/blackmarbler")
-#library(blackmarbler)
+               "classInt", "RColorBrewer", "splines","ggeffects", "exactextractr","ggsn", "ggspatial")
 
 
 library("devtools")
