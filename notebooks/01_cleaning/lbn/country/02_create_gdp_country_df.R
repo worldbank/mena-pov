@@ -43,7 +43,9 @@ gdp_pcap_constant_lcu <- load_and_process(dir_path, "GDP_pcap_constant_lcu.csv",
 # Combine all the datasets ------------------------------------------------
 ntl_annual <- ntl %>%
   group_by(year) %>%
-  summarise(ntl_mean = mean(avg_rad_df), .groups = "drop")
+  summarise(ntl_mean = mean(avg_rad_df), 
+            ntl_median = median(avg_rad_df),
+            .groups = "drop")
 
 merged_df <- ntl_annual %>%
   left_join(gdp_constant, by = "year") %>%
@@ -52,10 +54,21 @@ merged_df <- ntl_annual %>%
   left_join(gdp_pcap_constant_lcu, by = "year")
 
 # Export ------------------------------------------------------------------
-saveRDS(merged_df, file.path(dir_path,
+saveRDS(merged_df, file.path(lbn_file_path,
+                             "Nighttime_Lights",
+                             "final",
+                             "lbn_gdp_ntl.Rds"))
+
+saveRDS(merged_df, file.path(lbn_onedrive_dir,
                              "data",
                              "country",
                              "final",
                              "lbn_gdp_ntl.Rds"))
+
+write_csv(merged_df, file.path(lbn_onedrive_dir,
+                             "data",
+                             "country",
+                             "final",
+                             "lbn_gdp_ntl.csv"))
 
 

@@ -9,20 +9,24 @@ df <- readRDS(file.path(lbn_onedrive_dir,
                         "lbn_gdp_ntl.Rds"))
 
 
+grid <- readRDS(file.path(lbn_file_path,
+                        "Nighttime_Lights",
+                        "final",
+                        "lbn_grid_viirs.Rds"))
 
 
-# Prepare data ------------------------------------------------------------
-df <- df %>%
-  mutate(ntl_prop2 = ifelse(ntl_mean >2, ntl_mean,NA))
-
-
+grid_sub <- grid %>%
+  select(id,avg_rad_df,year) %>%
+  group_by(id,year) %>%
+  summarise(ntl_mean_pixel = mean(avg_rad_df), na.rm = T,
+            ntl_median_pixel = median(avg_rad_df), na.rm = T)
 
 # Trend Plot -----------------------------------------------------------------
 df %>%
-  select(-ntl_mean) %>%
   melt(.,id = "year") %>%
   ggplot(aes(x = year, y = value)) +
-  geom_smooth(size = 1, color = "black") +
+  geom_point() +
+  geom_line(size = 1, color = "black") +
   geom_vline(xintercept = 2018, color = "darkgrey", linetype = "dashed") +
   facet_wrap(~variable, scales = "free") +
   theme_classic2()
@@ -34,56 +38,49 @@ ggsave(filename = file.path(lbn_onedrive_dir,
   
 
 
-head(df)
 
 # Correlation Plot --------------------------------------------------------
-df %>%
-  ggplot(aes(y = ntl_mean_prop2, x = gdp_constant)) +
-  geom_point() +
+options(scipen=999)
+
+p1 <- df %>%
+  filter(!is.na(gdp_constant)) %>%
+  ggplot(aes(y = ntl_mean, x = gdp_constant))+
+  geom_point(size = 2, color = "black") +
+  geom_smooth( color = "black", se = F)+
+  geom_text(
+    aes(label = paste("Correlation =", round(cor(ntl_mean,gdp_constant),2))),
+    x = Inf, y = Inf,
+    hjust = 1, vjust = 1,
+    size = 5,
+    color = "black"
+  ) +
+  labs(x = "GDP (Constant 2015 US$)", y = "Nighttime Lights, Average", 
+       title = "Correlation b/w NTL and GDP (Constant 2015 US$) (2012-2020)") +
+  scale_x_continuous(labels = scales::comma) +
   theme_classic2()
 
+ggsave(p1, file = file.path(lbn_onedrive_dir,
+                            "graphs",
+                            "cor_ntl_gdp_constant.png"), width = 7, height = 4)
 
+p2 <- df %>%
+  filter(!is.na(gdp_constant)) %>%
+  ggplot(aes(y = ntl_mean, x = gdp_constant_lcu))+
+  geom_point(size = 2, color = "black") +
+  geom_smooth( color = "black", se = F)+
+  geom_text(
+    aes(label = paste("Correlation =", round(cor(ntl_mean,gdp_constant),2))),
+    x = Inf, y = Inf,
+    hjust = 1, vjust = 1,
+    size = 5,
+    color = "black"
+  ) +
+  labs(x = "GDP (Constant LCU)", y = "Nighttime Lights, Average", 
+       title = "Correlation b/w NTL and GDP (Constant LCU) (2012-2020)") +
+  scale_x_continuous(labels = scales::comma) +
+  theme_classic2()
 
-
-
-# Function to create a correlation plot
-create_correlation_plot <- function(data, x_col, y_col, x_label, y_label, title, filename) {
-  plot <- data %>%
-    select(-ntl_mean) %>%
-    filter(!is.na({{ x_col }})) %>%
-    ggplot(aes(x = {{ x_col }}, y = {{ y_col }})) +
-    geom_smooth(size = 1, color = "black") +
-    geom_text(
-      aes(label = paste("Correlation =", round(cor({{ x_col }}, {{ y_col }}), 2))),
-      x = Inf, y = Inf,
-      hjust = 1, vjust = 1,
-      size = 5,
-      color = "black"
-    ) +
-    labs(x = x_label, y = y_label, title = title) +
-    theme_classic2()
-  
-  ggsave(filename = filename, plot = plot, width = 6, height = 4)
-}
-
-# Call the function for each case
-create_correlation_plot(df, gdp_constant, ntl_prop2,
-                        "Nighttime Lights [Proportion > 2]", "GDP (Constant 2015 US$)",
-                        "NTL [Prop <2] and GDP [Constant 2015 US$]",
-                        file.path(lbn_onedrive_dir, "graphs", "gdp_constant.png"))
-
-create_correlation_plot(df, gdp_constant_lcu, ntl_prop2,
-                        "Nighttime Lights [Proportion > 2]", "GDP (Constant LCU)",
-                        "NTL [Prop <2] and GDP [Constant LCU]",
-                        file.path(lbn_onedrive_dir, "graphs", "gdp_constant_lcu.png"))
-
-create_correlation_plot(df, gdp_pcap_constant, ntl_prop2,
-                        "Nighttime Lights [Proportion > 2]", "GDP Per Capita[Constant US$]",
-                        "NTL [Prop <2] and GDP Per Capita [Constant US$]",
-                        file.path(lbn_onedrive_dir, "graphs", "gdp_pcap_constant.png"))
-
-create_correlation_plot(df, gdp_pcap_constant_lcu, ntl_prop2,
-                        "Nighttime Lights [Proportion > 2]", "GDP Per Capita[Constant LCU]",
-                        "NTL [Prop <2] and GDP Per Capita [Constant LCU]",
-                        file.path(lbn_onedrive_dir, "graphs", "gdp_pcap_constant_lcu.png"))
+ggsave(p2, file = file.path(lbn_onedrive_dir,
+                            "graphs",
+                            "cor_ntl_gdp_constant_lcu.png"), width = 7.5, height = 4)
 
