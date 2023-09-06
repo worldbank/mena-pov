@@ -1,5 +1,6 @@
 # Set options
 options(scipen = 999)
+library(RColorBrewer)
 
 # Load Data ---------------------------------------------------------------
 # Read Jordan shapefile
@@ -47,12 +48,18 @@ df_pdsi <- pdsi %>%
   as.data.frame(xy = TRUE, na.rm = TRUE)
 
 
+
+# Apply a smoothing matrix to the raster; this example uses a simple average
+matrix <- matrix(1/9, ncol=3, nrow=3)
+smoothed_r <- focal(pdsi, w=matrix)
+
+
 # Plot maps ---------------------------------------------------------------
 # Population Density
 ggplot() +
-  geom_tile(data = df_pop, aes(x = x, y = y, fill = category), width = res(pop_density)[1], height = res(pop_density)[2]) +
+  geom_raster(data = df_pop, aes(x = x, y = y, fill = category), interpolate = TRUE) +
   scale_fill_manual(values = brewer.pal(length(breaks_custom) - 1, "YlGnBu"), 
-                    name = "Pop. Density Range \n(People/sq.km)") +
+                    name = "Population Density \n(People/sq.km)") +
   labs(title = "Population Density, Jordan", subtitle = "Source: Population Density 2020 UN adjusted, WorldPop") +
   coord_sf() +
   theme_void()
@@ -62,7 +69,7 @@ ggsave(file = file.path(jor_onedrive_dir,"pop_density_jor.png"), height = 12, wi
 # Nighttime Lights
 ggplot() +
   geom_sf(data = jor_shp, fill = "black", alpha = 0.9, linewidth = 0.1) +
-  geom_tile(data = df_masked, aes(x = x, y = y, fill = df_masked$avg_rad_128), width = res(ntl_feb)[1], height = res(ntl_feb)[2]) +
+  geom_raster(data = df_masked, aes(x = x, y = y, fill = df_masked$avg_rad_128), interpolate = TRUE) +
   scale_fill_gradientn(colors = colorRampPalette(c("black", "yellow"))(length(breaks_custom) - 1), values = scales::rescale(breaks_custom), na.value = NA, name = "Light Intensity") +
   labs(title = "Nighttime Lights, Jordan", subtitle = "Source: February 2023, National Oceanic and Atmospheric Administration") +
   coord_sf() +
@@ -72,8 +79,8 @@ ggsave(file = file.path(jor_onedrive_dir,"ntl_jor.png"), height = 12, width = 16
 # Relative Wealth Index
 ggplot() +
   geom_sf(data = jor_shp, fill = "black", alpha = 0.9, linewidth = 0.1) +
-  geom_sf(data = rwi_sf, aes(color = rwi), size = 0.8, alpha = 2) +
-  scale_color_gradient(low = "yellow", high = "red", name = "RWI", limits = c(-0.5, 2)) +
+  geom_sf(data = rwi_sf, aes(color = rwi), size = 2, alpha = 2) +
+  scale_color_gradient(low = "yellow", high = "red", name = "Relative Wealth Index", limits = c(-0.5, 2)) +
   theme_void() +
   labs(x = "", y = "", title = "Relative Wealth Index, Jordan", subtitle = "Source: Data for Good Project, Meta")
 ggsave(file = file.path(jor_onedrive_dir,"rwi_jor.png"), height = 12, width = 16, units = c("in"))
@@ -83,12 +90,12 @@ ggsave(file = file.path(jor_onedrive_dir,"rwi_jor.png"), height = 12, width = 16
 
 # Plotting the masked raster
 ggplot(df_pdsi, aes(x = x, y = y)) +
-  geom_raster(aes(fill = pdsi)) +  # Assuming "layer" is the column containing the raster values; adjust if different
+  geom_raster(aes(fill = pdsi), interpolate = T) +  # Assuming "layer" is the column containing the raster values; adjust if different
   scale_fill_gradientn(colors = brewer.pal(9, "Greens"),  # Using reverse to have light to dark gradient
-                       name = "PDSI") +
+                       name = "Palmer Severity Drought Index") +
   labs(title = "Palmer Severity Drought Index, Jordan",
        subtitle = "Source: December 2022, National Oceanic and Atmospheric Administration",
-       caption = "Negative PDSI values indicate extremely dry conditions, while positive values signify extremely wet conditions.") +
+       caption = "Negative values indicate extremely dry conditions, while positive values signify extremely wet conditions.") +
   coord_sf() +
   theme_void() +
   theme(legend.position = "right")

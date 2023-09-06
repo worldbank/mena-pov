@@ -59,7 +59,7 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                'pracma','lubridate', 'scales', 'stringr', 'tidymodels', 
                'flextable', 'rsample', 'hdm', 'pROC', 'glmnet',
                'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS",
-               "classInt", "RColorBrewer", "splines","ggeffects", "exactextractr","ggsn", "ggspatial")
+               "classInt", "RColorBrewer", "splines","ggeffects","ggsn", "ggspatial")
 
 
 library("devtools")
