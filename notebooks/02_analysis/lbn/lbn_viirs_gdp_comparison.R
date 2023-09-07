@@ -46,6 +46,7 @@ p1 <- df %>%
   filter(!is.na(gdp_constant)) %>%
   ggplot(aes(y = ntl_mean, x = gdp_constant))+
   geom_point(size = 2, color = "black") +
+  geom_text(aes(label = year), nudge_y = 0.05, size = 3, vjust = 0, check_overlap = TRUE) +  # Adding year labels
   geom_smooth( color = "black", se = F)+
   geom_text(
     aes(label = paste("Correlation =", round(cor(ntl_mean,gdp_constant),2))),
@@ -58,7 +59,7 @@ p1 <- df %>%
        title = "Correlation b/w NTL and GDP (Constant 2015 US$) (2012-2020)") +
   scale_x_continuous(labels = scales::comma) +
   theme_classic2()
-
+p1
 ggsave(p1, file = file.path(lbn_onedrive_dir,
                             "graphs",
                             "cor_ntl_gdp_constant.png"), width = 7, height = 4)
@@ -67,6 +68,7 @@ p2 <- df %>%
   filter(!is.na(gdp_constant)) %>%
   ggplot(aes(y = ntl_mean, x = gdp_constant_lcu))+
   geom_point(size = 2, color = "black") +
+  geom_text(aes(label = year), nudge_y = 0.05, size = 3, vjust = 0, check_overlap = TRUE) +  # Adding year labels
   geom_smooth( color = "black", se = F)+
   geom_text(
     aes(label = paste("Correlation =", round(cor(ntl_mean,gdp_constant),2))),

@@ -53,7 +53,7 @@ process_data <- function(my_data, data_name, start_year = 2012, start_month = 4)
   # Rename the 'value' column using the data_name and remove the 'variable' column
   data_melted <- data_melted %>%
     select(-variable) %>%
-    rename({{ data_name }} := value)
+    dplyr::rename_with(~ data_name, .cols = "value")
   
   return(data_melted)
 }
@@ -83,16 +83,15 @@ municipality_sf <- municipality_sp %>%
 # Extract population ------------------------------------------------------
 
 # Load Data ---------------------------------------------------------------
-# setwd("M:/LBN/GEO/Population/raw")
+setwd("M:/LBN/GEO/Population/raw")
 
-
+library(exactextractr)
 rastlist <- list.files(path = "M:/LBN/GEO/Population/raw", pattern='.tif$', 
                        all.files=TRUE, full.names=FALSE)
 
 #import all raster files in folder using lapply
 allrasters <- lapply(rastlist, raster)
-
-
+rastlist
 
 # Extract values ----------------------------------------------------------
 municipality_pop_2012 <- exact_extract(allrasters[[1]], municipality_sp, fun = "sum")
@@ -121,7 +120,7 @@ municipality_pop_2012_2020_melted <- municipality_pop_2012_2020 %>%
   melt(.,id = "uid") %>%
   mutate(year = as.numeric(gsub("municipality_pop_","",variable))) %>%
   select(-variable) %>%
-  rename("pop_count" = "value")
+  dplyr::rename("pop_count" = "value")
 
 
 ## Check against WDI numbers
