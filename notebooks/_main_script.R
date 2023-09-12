@@ -23,6 +23,11 @@ yem_file_path <- file.path(local_dir,"YEM","GEO")
 
 jor_file_path <- file.path(local_dir,"JOR","GEO")
 jor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/Jordan")
+
+mor_file_path <- file.path(local_dir, "MOR", "GEO")
+mor_onedrive_dir <- file.path("C:/Users/OneDrive - WBG/Mor_earthquake analysis")
+
+
 mena_file_path <- file.path(local_dir,"MENA","GEO")
 
 #### Overleaf
@@ -37,12 +42,15 @@ UTM_YEM <- '+init=epsg:5836'
 N_CORES <- 2
 
 # LIBRARIES ====================================================================
-if(F){
-  library(pacman)
-  remotes::install_github("crazycapivara/h3-r")
+load_package_safely <- function(package_name){
+  if (!requireNamespace(package_name, quietly = TRUE)) {
+    message(package_name, " is not available.")
+  } else {
+    suppressWarnings(suppressMessages(library(package_name, character.only = TRUE)))
+  }
 }
 
-pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
+packages <- c("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                "rgdal","rgeos","geosphere","sf","broom","gdistance","data.table",
                "ggpubr","reshape","doBy","readstata13","haven","ggmap","gtools",
                "readxl","ggrepel", "plm","stargazer","xml2","mapsapi","leaflet",
@@ -61,7 +69,7 @@ pacman::p_load("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
                'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS",
                "classInt", "RColorBrewer", "splines","ggeffects","ggsn", "ggspatial")
 
+for (pkg in packages) {
+  load_package_safely(pkg)
+}
 
-library("devtools")
-install_github("kassambara/factoextra")
-library("factoextra")
