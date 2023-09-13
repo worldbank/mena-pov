@@ -25,8 +25,7 @@ jor_file_path <- file.path(local_dir,"JOR","GEO")
 jor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/Jordan")
 
 mor_file_path <- file.path(local_dir, "MOR", "GEO")
-mor_onedrive_dir <- file.path("C:/Users/OneDrive - WBG/Mor_earthquake analysis")
-
+mor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/MENAPOV Geospatial Documents - MENAPOV Geospatial Files/Projects/mor_earthquake_analysis")
 
 mena_file_path <- file.path(local_dir,"MENA","GEO")
 
