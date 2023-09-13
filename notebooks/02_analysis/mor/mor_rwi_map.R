@@ -6,6 +6,8 @@ library(rjson)
 library(jsonlite)
 library(dplyr)
 library(htmlwidgets)
+library(shiny)
+
 
 getOption("max.print")
 options(max.print = 10000)
@@ -30,6 +32,29 @@ intensity <- st_read(file.path(mor_onedrive_dir,
                                "data",
                                "shakemap_shp",
                                "pga.shp"))
+
+mor_pop <- raster(file.path(mor_file_path,
+                            "Population",
+                            "raw",
+                            "mar_ppp_2020_1km_Aggregated_UNadj.tif"))
+
+
+
+# Prepare the intensity categories ----------------------------------------
+intensity <- intensity %>%
+  mutate(pga = PARAMVALUE*100)
+
+
+# Extract Population ------------------------------------------------------
+summarize_population <- function(values, coverage_fractions) {
+  sum(values * coverage_fractions)
+}
+
+
+pop_worldpop <- exact_extract(mor_pop, morocco_shp, summarize_population)
+
+morocco_shp$pop_worldpop <- pop_worldpop
+
 
 
 
@@ -117,16 +142,26 @@ qpal <- colorFactor(palette = "OrRd", levels = c("Bottom 25%",
 legendLabels <- c("Bottom 25%", "25th to 50th Percentiles", "50th to 75th Percentiles", "Top 25%")
 legendColors <- sapply(legendLabels, qpal)
 
+pga_pal <- colorNumeric(palette = "viridis", domain = intensity$pga)
+
 
 label_data <- paste0(
-  cropped_sf$NAME_4.x, 
-  "\nRWI: ", 
+  "Commune:", cropped_sf$NAME_4.x, 
+  "<br>",
+  "RWI: ", 
   ifelse(is.na(cropped_sf$mean_rwi), "NA", round(cropped_sf$mean_rwi, 2)),
-  " ,", 
+  "<br>",
+  "Quartile:", 
   ifelse(is.na(cropped_sf$quartile), "NA", cropped_sf$quartile), 
-  " Affected Population: ", 
-  ifelse(is.na(cropped_sf$total_population), "NA", cropped_sf$total_population)
+  "<br>",
+  "Affected Population: ", 
+  ifelse(is.na(cropped_sf$total_population), "NA", cropped_sf$total_population),
+  "<br>",
+  "Population (WorldPop): ", round(cropped_sf$pop_worldpop,0)
 )
+
+
+
 
 
 rwi <- leaflet(cropped_sf) %>%
@@ -141,26 +176,41 @@ rwi <- leaflet(cropped_sf) %>%
     color = "white",
     dashArray = "3",
     fillOpacity = 2,
-    label = ~label_data,
+    popup = ~label_data,
     highlight = highlightOptions(
       weight = 2,
       color = "#666",
       dashArray = "",
       fillOpacity = 0.5,
     ),
-    labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "15px", direction = "auto")
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", 
+                   padding = "3px 8px"), 
+      textsize = "15px", 
+      direction = "auto")
   ) %>%
   
   # Add the intensity layer
-  addPolygons(data = intensity, fill = NA, color = "black", weight = 0.5) %>%
+  # Add the intensity layer with PGA coloring
+  addPolylines(
+    data = intensity,
+    color = ~pga_pal(pga),
+    fillColor = NA,
+    fillOpacity = 0.6,
+    weight = 2
+  ) %>%
   
   # Add custom legend without NA values
   addLegend(colors = legendColors, 
             labels = legendLabels,
             opacity = 1, 
             title = "Relative Wealth Index", 
-            position = "bottomright")
-
+            position = "bottomright") %>%
+  # Add a horizontal legend for PGA
+  addLegend(pal = pga_pal, 
+          values = intensity$pga,
+          title = "PGA Values",
+          position = "bottomright")
 
 rwi
 # Save the leaflet widget as an html file
