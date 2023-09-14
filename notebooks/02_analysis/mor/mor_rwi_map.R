@@ -52,7 +52,6 @@ summarize_population <- function(values, coverage_fractions) {
 
 
 pop_worldpop <- exact_extract(mor_pop, morocco_shp, summarize_population)
-
 morocco_shp$pop_worldpop <- pop_worldpop
 
 
@@ -63,7 +62,7 @@ morocco_shp$pop_worldpop <- pop_worldpop
 # clean
 
 
-affected_pop <- affected_pop %>%
+affected_pop_summ <- affected_pop %>%
   rename("NAME_4" = "commune_fr") %>%
   mutate(
     population = as.numeric(as.character(population)),
@@ -74,7 +73,7 @@ affected_pop <- affected_pop %>%
     total_population = sum(population, na.rm = TRUE),
     total_menages = sum(menage, na.rm = TRUE)
   ) %>%
-  ungroup()
+  ungroup() ## 160 communes where we have information of affected people
 
 
 ## clean names in shapefile
@@ -93,8 +92,33 @@ mutate(NAME_4 = case_when(
   TRUE ~ NAME_4
 ),
 uid = 1:nrow(morocco_shp)) %>%
-  left_join(affected_pop, by = c("NAME_4"))
+  left_join(affected_pop_summ, by = c("NAME_4"))
 
+
+those_affected <- morocco_shp_clean %>%
+  filter(!is.na(total_population))
+
+#Calculate the difference
+those_affected$difference <- those_affected$total_population - those_affected$pop_worldpop
+
+
+ggplot(data = those_affected) +
+  geom_line(aes(x = NAME_4, y = total_population, group = 1, color = "Total Population")) +
+  geom_line(aes(x = NAME_4, y = pop_worldpop, group = 2, color = "World Population")) +
+  geom_line(aes(x = NAME_4, y = difference, group = 3, color = "Difference")) +
+  geom_point(aes(x = NAME_4, y = total_population, color = "Total Population")) + 
+  geom_point(aes(x = NAME_4, y = pop_worldpop, color = "World Population")) +
+  scale_color_manual(values = c("Total Population" = "red", "World Population" = "blue")) +
+  labs(
+    title = "Comparison between Total Population and World Population by NAME_4",
+    x = "Commune",
+    y = "Population Count",
+    color = "Legend"
+  ) +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, size = 4, hjust = 1)) 
+
+  
 
 
 # Merge RWI and Shapefile -------------------------------------------------

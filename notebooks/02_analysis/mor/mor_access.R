@@ -22,10 +22,14 @@ roads <- st_read(file.path(mor_file_path,
 # Road Intersections ------------------------------------------------------
 
 roads_intersect_intensity <- st_crop(roads,intensity)
+intensity_over_roads <- st_intersection(roads_intersect_intensity, intensity)
+
+
+
+
 
 
 ggplot()+
   geom_sf(data = roads_intersect_intensity, aes(color = fclass))+
   geom_sf(data = intensity, fill = NA)+
-  geom_sf(data = morocco_shp) +
   theme_void()
