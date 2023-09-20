@@ -1,10 +1,10 @@
 ## Extract Road Density and Measure Access
-
+install.packages("osrm")
 
 # Load Data ---------------------------------------------------------------
 morocco_shp <- st_read(file.path(mor_file_path,
                                  "Boundaries",
-                                 "gadm41_MAR_4.shp"))
+                                 "gadm41_MAR_4.shp")) 
 
 
 intensity <- st_read(file.path(mor_onedrive_dir,
@@ -19,10 +19,18 @@ roads <- st_read(file.path(mor_file_path,
 
 
 
+# Take centroids of each commune ------------------------------------------
+## transform the projection to UTM
+
+mor_utm <- morocco_shp %>% st_transform(32629)
+mor_cent <- st_centroid(mor_utm)
+
+
+
 # Road Intersections ------------------------------------------------------
 
-roads_intersect_intensity <- st_crop(roads,intensity)
-intensity_over_roads <- st_intersection(roads_intersect_intensity, intensity)
+
+earthquake_affected_areas <- st_intersection(roads, intensity)
 
 
 
