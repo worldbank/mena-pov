@@ -16,26 +16,13 @@ local_dir   <- "M:"
 
 
 #### Data
-
-#Lebanon
 lbn_file_path <- file.path(local_dir,"LBN","GEO")
 lbn_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/lbn_geospatial_analysis")
 
-#Yemen
 yem_file_path <- file.path(local_dir,"YEM","GEO")
 
-#Jordan
 jor_file_path <- file.path(local_dir,"JOR","GEO")
 jor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/Jordan")
-
-#Morocco
-mor_file_path <- file.path(local_dir, "MOR", "GEO")
-mor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/MENAPOV Geospatial Documents - MENAPOV Geospatial Files/Projects/mor_earthquake_analysis")
-
-#Libya
-lby_file_path <- file.path(local_dir, "LBY", "GEO")
-
-#MENA
 mena_file_path <- file.path(local_dir,"MENA","GEO")
 
 #### Overleaf
@@ -50,34 +37,45 @@ UTM_YEM <- '+init=epsg:5836'
 N_CORES <- 2
 
 # LIBRARIES ====================================================================
-load_package_safely <- function(package_name){
-  if (!requireNamespace(package_name, quietly = TRUE)) {
-    message(package_name, " is not available.")
-  } else {
-    suppressWarnings(suppressMessages(library(package_name, character.only = TRUE)))
-  }
+# Install the GitHub package if F is TRUE
+if(F){
+  library(pacman)
+  remotes::install_github("crazycapivara/h3-r")
 }
 
 packages <- c("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
-               "rgdal","rgeos","geosphere","sf","broom","gdistance","data.table",
-               "ggpubr","reshape","doBy","readstata13","haven","ggmap","gtools",
-               "readxl","ggrepel", "plm","stargazer","xml2","mapsapi","leaflet",
-               "XML", "tmap","lubridate", "hrbrthemes", "tidyr","stringr","lfe",
-               "devtools", "usethis","viridisLite","viridis","jtools","osrm",
-               "formattable","geojsonio","DataCombine","nngeo","qwraps2","pastecs",
-               "htmlwidgets","car","visreg","fuzzyjoin","leaflet.extras",
-               "maptools","mapview","lmtest","multiwayvcov","ggplot2","sjlabelled",
-               "dtplyr","expss","h3jsr", "spdplyr", "janitor",
-               "tidygraph", "sparklyr", "styler","remotes",
-               "h3","arrow","fs","jsonlite", "geodata", "osrm", 
-               "stplanr", "exactextractr", "rjson", "patchwork", "ggmap",
-               "progress",'haven','dplyr', 'reshape2', 'tidyverse', 
-               'pracma','lubridate', 'scales', 'stringr', 'tidymodels', 
-               'flextable', 'rsample', 'hdm', 'pROC', 'glmnet',
-               'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS",
-               "classInt", "RColorBrewer", "splines","ggeffects","ggsn", "ggspatial")
+              "rgdal","rgeos","geosphere","sf","broom","gdistance","data.table",
+              "ggpubr","reshape","doBy","readstata13","haven","ggmap","gtools",
+              "readxl","ggrepel", "plm","stargazer","xml2","mapsapi","leaflet",
+              "XML", "tmap","lubridate", "hrbrthemes", "tidyr","stringr","lfe",
+              "devtools", "usethis","viridisLite","viridis","jtools","osrm",
+              "formattable","geojsonio","DataCombine","nngeo","qwraps2","pastecs",
+              "htmlwidgets","car","visreg","fuzzyjoin","leaflet.extras",
+              "maptools","mapview","lmtest","multiwayvcov","ggplot2","sjlabelled",
+              "dtplyr","expss","h3jsr", "spdplyr", "janitor",
+              "tidygraph", "sparklyr", "styler","remotes",
+              "h3","arrow","fs","jsonlite", "geodata", "osrm", 
+              "stplanr", "exactextractr", "rjson", "patchwork", "ggmap",
+              "progress",'haven','dplyr', 'reshape2', 'tidyverse', 
+              'pracma','lubridate', 'scales', 'stringr', 'tidymodels', 
+              'flextable', 'rsample', 'hdm', 'pROC', 'glmnet',
+              'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS",
+              "classInt", "RColorBrewer", "splines","ggeffects", "exactextractr","ggsn", "ggspatial")
 
+# Install each package
 for (pkg in packages) {
-  load_package_safely(pkg)
+  # Check if the package is already installed
+  if (!require(pkg, character.only = TRUE)) {
+    tryCatch({
+      install.packages(pkg, dependencies = TRUE)
+      library(pkg, character.only = TRUE)
+    }, error = function(e) {
+      cat("ERROR:", e$message, "in installing", pkg, "\n")
+    })
+  }
 }
 
+# Install GitHub package and load it
+library("devtools")
+install_github("kassambara/factoextra")
+library("factoextra")
