@@ -23,7 +23,12 @@ yem_file_path <- file.path(local_dir,"YEM","GEO")
 
 jor_file_path <- file.path(local_dir,"JOR","GEO")
 jor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/Jordan")
+
 mena_file_path <- file.path(local_dir,"MENA","GEO")
+
+mor_file_path <- file.path(local_dir,"MOR","GEO")
+
+lby_file_path <- file.path(local_dir, "LBY", "GEO")
 
 #### Overleaf
 tables_dir  <- "PATH"

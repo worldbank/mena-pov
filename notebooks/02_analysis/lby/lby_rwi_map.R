@@ -1,4 +1,7 @@
+library(htmltools)
+
 ## Libya Relative Wealth Index
+
 
 lby_shp <- st_read(file.path(lby_file_path,
                                  "Boundaries",
@@ -17,37 +20,42 @@ pop_worldpop <- raster(file.path(lby_file_path,
                                  "lby_ppp_2020_1km_Aggregated_UNadj.tif"))
 
 
-# Filter out affected regions ---------------------------------------------
-## Filter out affected areas
-ls_affected <- c("Benghazi","Al Marj","Darnah","Al Jabal al Akhdar")
+# Transform projection to calculate distance ------------------------------
+# Transform to UTM Zone 33N (EPSG code 32633)
+lby_shp_utm <- st_transform(lby_shp, 32633)
 
-lby_flood_affected <- lby_shp %>%
-  filter(NAME_1 %in% ls_affected)
+# Buffer by 1 meter
+lby_shp_utm_buffered <- st_buffer(lby_shp_utm, dist = 1000)
+
+# (Optional) Transform back to WGS 84
+lby_shp_buffered <- st_transform(lby_shp_utm_buffered, 4326)
 
 
 
-
-
-# Extract population for affected regions ---------------------------------
+# Extract population  ---------------------------------
 crs(pop_worldpop) <- CRS('+init=EPSG:4326')
 
-lby_flood_affected_sp <- as(lby_flood_affected, "Spatial")
-lby_flood_affected_sp <- spTransform(lby_flood_affected_sp, CRSobj = crs(pop_worldpop))
+lby_shp_buffered_sp <- as(lby_shp_buffered, "Spatial")
+lby_shp_buffered_sp <- spTransform(lby_shp_buffered_sp, CRSobj = crs(pop_worldpop))
 
-pop_worldpop <- extract(pop_worldpop, lby_flood_affected_sp, fun = sum, na.rm = TRUE)
+pop_worldpop <- extract(pop_worldpop, lby_shp_buffered_sp, fun = sum, na.rm = TRUE)
+lby_shp_buffered_sp@data$pop_worldpop <- pop_worldpop
 
 
-
-
+lby_shp_buffered_sf <- st_as_sf(lby_shp_buffered_sp)
 
 # Convert RWI to sf -------------------------------------------------------
 ## Convert RWI to sf
 rwi_sf <- st_as_sf(rwi, coords = c("longitude", "latitude")) %>% 
   st_set_crs(4326) %>% 
-  st_transform(st_crs(lby_flood_affected))
+  st_transform(st_crs(lby_shp_buffered_sf))
+
 
 #merge the points data and shapefile
-merge_rwi_shp <- st_join(rwi_sf,lby_flood_affected, left = TRUE)
+merge_rwi_shp <- st_join(rwi_sf,lby_shp_buffered_sf, left = TRUE)
+
+
+
 
 agg_rwi <- merge_rwi_shp %>%
   filter(!is.na(NAME_1)) %>%
@@ -61,7 +69,21 @@ agg_rwi <- merge_rwi_shp %>%
     mean_rwi > quantile(mean_rwi, 0.75) ~ "Top 25%",
     TRUE ~ NA_character_
   )) %>%
-  left_join()
+  st_drop_geometry()
+
+
+lby_shp_buffered_sf <- lby_shp_buffered_sf %>%
+  left_join(agg_rwi, by = c("NAME_1"))
+
+
+#Filter out affected regions ---------------------------------------------
+## Filter out affected areas
+ls_affected <- c("Benghazi","Al Marj","Darnah","Al Jabal al Akhdar")
+
+
+lby_shp_affected <- lby_shp_buffered_sf %>% filter(NAME_1 %in% ls_affected)
+bboxes <- st_bbox(lby_shp_affected)
+
 
 
 
@@ -74,31 +96,42 @@ qpal <- colorFactor(palette = "OrRd", levels = c("Bottom 25%",
 legendLabels <- c("Bottom 25%", "25th to 50th Percentiles", "50th to 75th Percentiles", "Top 25%")
 legendColors <- sapply(legendLabels, qpal)
 
-#pga_pal <- colorNumeric(palette = "viridis", domain = intensity$pga)
+legend_html <- HTML(
+  paste0(
+    "<div style='padding: 5px 0;'><strong>Relative Wealth Index</strong></div>",
+    paste(
+      sprintf("<i style='background: %s; opacity: 1; width: 15px; height: 15px; display: inline-block; vertical-align: middle; margin-right: 5px;'></i> %s<br>", legendColors, legendLabels),
+      collapse = ""
+    ),
+    "<div style='padding-top: 10px;'><div style='display: inline-block; border: 2px solid red; width: 15px; height: 15px; margin-right: 5px; vertical-align: middle;'></div>",
+    "<span>Flood Affected Region</span></div>"
+  )
+)
+
 
 
 
 label_data <- paste0(
-  "District:", agg_rwi$NAME_4, 
+  "District:", agg_rwi$NAME_1, 
   "<br>",
   "RWI: ", 
   ifelse(is.na(agg_rwi$mean_rwi), "NA", round(agg_rwi$mean_rwi, 2)),
   "<br>",
   "Quartile:", 
-  ifelse(is.na(cropped_sf$quartile), "NA", cropped_sf$quartile), 
+  ifelse(is.na(lby_shp_buffered_sf$quartile), "NA", lby_shp_buffered_sf$quartile), 
   "<br>",
-  "Population (WorldPop): ", round(cropped_sf$pop_worldpop,0)
+  "Population (WorldPop): ", round(lby_shp_buffered_sf$pop_worldpop,0)
 )
 
 
 
 
 
-rwi <- leaflet(cropped_sf) %>%
+rwi <- leaflet(lby_shp_buffered_sf) %>%
   # Base layer
   addTiles() %>%
   
-  # Add the cropped_sf polygons
+  # Add the lby_shp_buffered polygons
   addPolygons(
     fillColor = ~qpal(quartile),
     weight = 0.7,
@@ -119,27 +152,25 @@ rwi <- leaflet(cropped_sf) %>%
       textsize = "15px", 
       direction = "auto")
   ) %>%
-  
-  # Add the intensity layer
-  # Add the intensity layer with PGA coloring
-  addPolylines(
-    data = intensity,
-    color = ~pga_pal(pga),
-    fillColor = NA,
-    fillOpacity = 0.6,
+  addRectangles(
+    lng1 = bboxes["xmin"],
+    lat1 = bboxes["ymin"],
+    lng2 = bboxes["xmax"],
+    lat2 = bboxes["ymax"],
+    color = "red",  # choose a color for the bounding box
+    fill = FALSE,
     weight = 2
   ) %>%
   
-  # Add custom legend without NA values
-  addLegend(colors = legendColors, 
-            labels = legendLabels,
-            opacity = 1, 
-            title = "Relative Wealth Index", 
-            position = "bottomright") %>%
-  # Add a horizontal legend for PGA
-  addLegend(pal = pga_pal, 
-            values = intensity$pga,
-            title = "PGA Values",
-            position = "bottomright")
+  # Add custom legend
+  addControl(legend_html, position = "bottomright")
 
 rwi
+
+
+# Export ------------------------------------------------------------------
+
+setwd("C:/Users/wb569257/OneDrive - WBG/MENAPOV Geospatial Documents - MENAPOV Geospatial Files/Projects/lby_flood_analysis/maps")
+
+# Save the leaflet widget as an html file
+saveWidget(rwi, file = "lby_rwi_map.html", selfcontained = T)

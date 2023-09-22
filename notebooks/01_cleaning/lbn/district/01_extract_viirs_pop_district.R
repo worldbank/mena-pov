@@ -11,7 +11,7 @@ r <- stack(file.path(lbn_file_path,
 
 municipality_sp <- st_read(file.path(lbn_file_path,
                                  "Boundaries",
-                                 "gadm41_LBN_3.shp")) %>% as_Spatial()
+                                 "gadm41_LBN_2.shp")) %>% as_Spatial()
 
 # Extract -----------------------------------------------------------------
 r_t2 <- r
