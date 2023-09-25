@@ -5,11 +5,11 @@
 df <- readRDS(file.path(lbn_onedrive_dir,
                         "data",
                         "municipalities",
-                        "lbn_municipality_ntl_pop.Rds"))
+                        "lbn_district_ntl_pop.Rds"))
 
-municipality_sp <- st_read(file.path(lbn_file_path,
+district_sf <- st_read(file.path(lbn_file_path,
                                      "Boundaries",
-                                     "gadm41_LBN_3.shp")) %>% as_Spatial()
+                                     "gadm41_LBN_2.shp")) 
 
 wdi_pop_count <- read_csv(file.path(lbn_onedrive_dir,
                                     "data",
@@ -25,13 +25,18 @@ wdi_pop_count <- read_csv(file.path(lbn_onedrive_dir,
   dplyr::rename("pop_count_wdi"="value") %>%
   filter(year>= "2012" & year<= "2020")
 
+
+refugee_pop <- read_excel(file.path(lbn_file_path,
+                                    "Team",
+                                    "TeamData",
+                                    "Breakdown of Registered Syrians by Cadaster 2012-Jun 2023.xlsx"))
+
 # Prepare data ------------------------------------------------------------
 df_annual <- df %>%
   group_by(uid,year) %>%
   reframe(ntl_mean = mean(ntl_mean),
             ntl_median = median(ntl_median),
-            ntl_prop_g2 = mean(ntl_prop_g2),
-            pop_count = pop_count) %>%
+            pop_count = population) %>%
   distinct()%>%
   filter(year <= 2020)
 

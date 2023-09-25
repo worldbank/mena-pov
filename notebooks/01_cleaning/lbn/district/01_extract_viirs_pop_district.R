@@ -9,20 +9,26 @@ r <- stack(file.path(lbn_file_path,
                                  "monthly", 
                                  "lebanon_viirs_raw_monthly_start_201204_end_202303_avg_rad.tif"))
 
-municipality_sp <- st_read(file.path(lbn_file_path,
+district_sf <- st_read(file.path(lbn_file_path,
                                  "Boundaries",
-                                 "gadm41_LBN_2.shp")) %>% as_Spatial()
+                                 "gadm41_LBN_2.shp"))
+
+
+
+# Check Projection --------------------------------------------------------
+
+# Check CRS of both
+raster_crs <- crs(r)
+sf_crs <- st_crs(district_sf)
+
 
 # Extract -----------------------------------------------------------------
-r_t2 <- r
-r_t2[] <- as.numeric(r_t2[] >= 2)
 
 ## create uid
-municipality_sp@data$uid <- 1:nrow(municipality_sp@data)
+district_sf$uid <- 1:nrow(district_sf)
 
-ntl_mean    <- exact_extract(r, municipality_sp, fun = "mean")
-ntl_median  <- exact_extract(r, municipality_sp, fun = "median")
-ntl_prop_g2 <- exact_extract(r_t2, municipality_sp, fun = "mean")
+ntl_mean    <- exact_extract(r, district_sf, fun = "mean")
+ntl_median  <- exact_extract(r, district_sf, fun = "median")
 
 
 process_data <- function(my_data, data_name, start_year = 2012, start_month = 4) {
@@ -61,31 +67,18 @@ process_data <- function(my_data, data_name, start_year = 2012, start_month = 4)
 # Call the function on each dataset
 ntl_mean_melted <- process_data(ntl_mean, "ntl_mean")
 ntl_median_melted <- process_data(ntl_median, "ntl_median")
-ntl_prop_g2_melted <- process_data(ntl_prop_g2, "ntl_prop_g2")
 
 
 # Merge with admin boundaries ---------------------------------------------
 # List all the data frames you want to merge
-list_of_dfs <- list(ntl_mean_melted, ntl_median_melted, ntl_prop_g2_melted)
+list_of_dfs <- list(ntl_mean_melted, ntl_median_melted)
 
 # Use reduce() to sequentially merge all data frames in the list
-merged_df <- reduce(list_of_dfs, left_join, by = c("uid", "month", "year"))
-
-
-
-municipality_sf <- municipality_sp %>%
-  st_as_sf() %>%
-  mutate(uid = 1:n()) %>%
-  left_join(merged_df, by = "uid")
-
+merged_df<- reduce(list_of_dfs, left_join, by = c("uid", "month", "year"))
 
 
 # Extract population ------------------------------------------------------
-
-# Load Data ---------------------------------------------------------------
 setwd("M:/LBN/GEO/Population/raw")
-
-library(exactextractr)
 rastlist <- list.files(path = "M:/LBN/GEO/Population/raw", pattern='.tif$', 
                        all.files=TRUE, full.names=FALSE)
 
@@ -94,60 +87,61 @@ allrasters <- lapply(rastlist, raster)
 rastlist
 
 # Extract values ----------------------------------------------------------
-municipality_pop_2012 <- exact_extract(allrasters[[1]], municipality_sp, fun = "sum")
-municipality_pop_2013 <- exact_extract(allrasters[[2]], municipality_sp, fun = "sum")
-municipality_pop_2014 <- exact_extract(allrasters[[3]], municipality_sp, fun = "sum")
-municipality_pop_2015 <- exact_extract(allrasters[[4]], municipality_sp, fun = "sum")
-municipality_pop_2016 <- exact_extract(allrasters[[5]], municipality_sp, fun = "sum")
-municipality_pop_2017 <- exact_extract(allrasters[[6]], municipality_sp, fun = "sum")
-municipality_pop_2018 <- exact_extract(allrasters[[7]], municipality_sp, fun = "sum")
-municipality_pop_2019 <- exact_extract(allrasters[[8]], municipality_sp, fun = "sum")
-municipality_pop_2020 <- exact_extract(allrasters[[9]], municipality_sp, fun = "sum")
+
+# Create an empty list to store the results
+district_pop_list <- list()
+
+for(i in 1:9) { 
+  year <- 2011 + i
+  district_pop_list[[year]] <- extract(allrasters[[i]], as(district_sf, "Spatial"), 
+                                       fun = sum, na.rm = TRUE)
+}
 
 
-municipality_pop_2012_2020 <- as.data.frame(cbind(municipality_pop_2012,
-                                                  municipality_pop_2013,
-                                                  municipality_pop_2014,
-                                                  municipality_pop_2015,
-                                                  municipality_pop_2016,
-                                                  municipality_pop_2017,
-                                                  municipality_pop_2018,
-                                                  municipality_pop_2019,
-                                                  municipality_pop_2020))
+# Convert list to a data frame
+district_pop_2012_2020 <- as.data.frame(do.call(cbind, district_pop_list))
 
-municipality_pop_2012_2020_melted <- municipality_pop_2012_2020 %>%
-  mutate(uid = 1:n()) %>%
-  melt(.,id = "uid") %>%
-  mutate(year = as.numeric(gsub("municipality_pop_","",variable))) %>%
-  select(-variable) %>%
-  dplyr::rename("pop_count" = "value")
+# Name the columns
+names(district_pop_2012_2020) <- paste0("district_pop_", 2012:2020)
+
+# Add the uid column
+district_pop_2012_2020$uid <- 1:nrow(district_pop_2012_2020)
+
+# Melt the dataframe
+district_pop_2012_2020_melted <- district_pop_2012_2020 %>%
+  pivot_longer(cols = starts_with("district_pop_"), 
+               names_to = "year", 
+               values_to = "population") %>%
+  mutate(year = as.numeric(str_remove(year, "district_pop_")))
+
+
+
 
 
 ## Check against WDI numbers
-municipality_pop_2012_2020_melted %>%
+district_pop_2012_2020_melted %>%
   group_by(year) %>%
-  summarise(total_pop = sum(pop_count))
-
+  summarise(total_pop = sum(population))
 
 
 # Merge NTL and population ------------------------------------------------
 merged_df <- merged_df %>%
-  left_join(municipality_pop_2012_2020_melted, by = c("uid", "year"))
+  left_join(district_pop_2012_2020_melted, by = c("uid", "year"))
 
 
 # Export ------------------------------------------------------------------
 saveRDS(merged_df, file.path(lbn_file_path,
                              "Nighttime_Lights",
                              "final",
-                             "lbn_municipality_ntl_pop.Rds"))
+                             "lbn_distict_ntl_pop.Rds"))
 
 saveRDS(merged_df, file.path(lbn_onedrive_dir,
                              "data",
                              "municipalities",
-                             "lbn_municipality_ntl_pop.Rds"))
+                             "lbn_district_ntl_pop.Rds"))
 
 write_csv(merged_df, file.path(lbn_onedrive_dir,
                              "data",
                              "municipalities",
-                             "lbn_municipality_ntl_pop.csv"))
+                             "lbn_district_ntl_pop.csv"))
 
