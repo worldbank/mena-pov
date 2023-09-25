@@ -10,14 +10,13 @@
 # FILEPATHS ====================================================================
 #### Root
 github_dir  <- "C:/Users/wb569257/OneDrive - WBG/Documents/GitHub"
-#local_dir  <- "//MENAPOV/menapov"
 local_dir   <- "M:"
 
 
 
 #### Data
 lbn_file_path <- file.path(local_dir,"LBN","GEO")
-lbn_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/lbn_geospatial_analysis")
+lbn_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/MENAPOV Geospatial Documents - MENAPOV Geospatial Files/Projects/lbn_ntl_analysis")
 
 yem_file_path <- file.path(local_dir,"YEM","GEO")
 
@@ -27,6 +26,7 @@ jor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/Jordan")
 mena_file_path <- file.path(local_dir,"MENA","GEO")
 
 mor_file_path <- file.path(local_dir,"MOR","GEO")
+mor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/MENAPOV Geospatial Documents - MENAPOV Geospatial Files/Projects/mor_earthquake_analysis")
 
 lby_file_path <- file.path(local_dir, "LBY", "GEO")
 

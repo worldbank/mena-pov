@@ -26,10 +26,29 @@ wdi_pop_count <- read_csv(file.path(lbn_onedrive_dir,
   filter(year>= "2012" & year<= "2020")
 
 
-refugee_pop <- read_excel(file.path(lbn_file_path,
-                                    "Team",
-                                    "TeamData",
-                                    "Breakdown of Registered Syrians by Cadaster 2012-Jun 2023.xlsx"))
+## Importing Refugee Populations
+# Define the file path
+file_path <- "M:/LBN/GEO/Team/TeamData/Breakdown of Registered Syrians by Cadaster 2012-Jun 2023.xlsx"
+
+# Get the names of all sheets
+all_sheets <- excel_sheets(file_path)
+
+# Assuming that each sheet has the same structure, you can read and bind them together
+all_data <- lapply(all_sheets, function(sheet) {
+  data <- read_excel(file_path, sheet = sheet)
+  
+  # Adding a column for the date from the sheet name (assuming your sheet names are exactly in the format "Dec 2012", "Jan 2013" etc.)
+  data$Date <- as.Date(paste("01", sheet), format="%d %b %Y")
+  
+  return(data)
+}) %>% bind_rows() %>% 
+  group_by(AliasGovernorate,District,Date) %>% 
+  reframe(ref_pop = sum(`Registered Syrian Individuals`))
+
+
+syrian_pop <- all_data %>%
+  filter(AliasGovernorate != "-" & District != "-")
+
 
 # Prepare data ------------------------------------------------------------
 df_annual <- df %>%
@@ -306,40 +325,3 @@ ggsave(filename = file.path(lbn_onedrive_dir,
 
 
 
-# map_df <- df_annual %>%
-#   left_join(municipality_sf, by = "uid") %>%
-#   group_by(NAME_2,year) %>%
-#   reframe(ntl_mean = mean(ntl_mean),
-#           pop_count = sum(pop_count)) %>%
-#   ungroup() %>%
-#   group_by(NAME_2) %>%
-#   reframe(pop_pct_change_2012_2018 = ((pop_count[year == 2018] - pop_count[year == 2012])/(pop_count[year == 2012]))*100,
-#           ntl_pct_change_2012_2018 = ((ntl_mean[year == 2018] - ntl_mean[year == 2012])/(ntl_mean[year==2012]))*100,
-#           pop_pct_change_2012_2020 = ((pop_count[year == 2020] - pop_count[year == 2012])/(pop_count[year == 2012]))*100,
-#          ntl_pct_change_2012_2020 = ((ntl_mean[year == 2020] - ntl_mean[year == 2012])/(ntl_mean[year==2012]))*100) %>%
-#   distinct() %>%
-#   left_join(municipality_sf, by = "NAME_2")
-# 
-# 
-# ggplot(data = st_as_sf(map_df)) +
-#   geom_sf(aes(fill = pop_pct_change_2012_2020), color = NA, alpha = 0.7) +
-#   labs(title = "Percentage Change in Population Count b/w 2012 and 2020 (District/ADM2)", 
-#        fill = "Pct Change \n(2012 & 2020)") +
-#   scale_fill_gradient(low = "white", high = "blue") +
-#   theme_void()
-# 
-# ggsave(filename = file.path(lbn_onedrive_dir,
-#                             "maps",
-#                             "pct_change_pop_2012_2020_adm2_map.png"), width = 8, height = 6)
-# 
-# 
-# ggplot(data = st_as_sf(map_df)) +
-#   geom_sf(aes(fill = ntl_pct_change_2012_2020), color = NA, alpha = 0.8) +
-#   labs(title = "Percentage Change in Nighttime Lights b/w 2012 and 2020 (District/ADM2)", 
-#        fill = "Pct Change \n(2012 & 2020)") +
-#   scale_fill_gradient(low = "white", high = "blue") +
-#   theme_void()
-# 
-# ggsave(filename = file.path(lbn_onedrive_dir,
-#                             "maps",
-#                             "pct_change_ntl_2012_2020_adm2_map.png"), width = 8, height = 6)
