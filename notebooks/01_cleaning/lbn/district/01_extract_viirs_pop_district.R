@@ -1,5 +1,5 @@
 # Create datasets that include:
-# NTL at municipality level
+# NTL at District Level
 
 
 # Load data ---------------------------------------------------------------
@@ -11,7 +11,7 @@ r <- stack(file.path(lbn_file_path,
 
 district_sf <- st_read(file.path(lbn_file_path,
                                  "Boundaries",
-                                 "gadm41_LBN_2.shp"))
+                                 "lbn_admbnda_adm2_cdr_20200810.shp"))
 
 
 
@@ -24,11 +24,13 @@ sf_crs <- st_crs(district_sf)
 
 # Extract -----------------------------------------------------------------
 
-## create uid
-district_sf$uid <- 1:nrow(district_sf)
 
 ntl_mean    <- exact_extract(r, district_sf, fun = "mean")
 ntl_median  <- exact_extract(r, district_sf, fun = "median")
+
+ntl_mean$admin2Pcod <- district_sf$admin2Pcod
+ntl_median$admin2Pcod <- district_sf$admin2Pcod
+
 
 
 process_data <- function(my_data, data_name, start_year = 2012, start_month = 4) {
@@ -36,7 +38,7 @@ process_data <- function(my_data, data_name, start_year = 2012, start_month = 4)
   # Melt the data
   data_melted <- my_data %>%
     mutate(uid = 1:nrow(.)) %>%
-    melt(id.vars = "uid") %>%
+    melt(id.vars = "admin2Pcod") %>%
     mutate(variable = gsub("mean.avg_rad", "", variable))
   
   # Initialize the year and month values
@@ -74,7 +76,7 @@ ntl_median_melted <- process_data(ntl_median, "ntl_median")
 list_of_dfs <- list(ntl_mean_melted, ntl_median_melted)
 
 # Use reduce() to sequentially merge all data frames in the list
-merged_df<- reduce(list_of_dfs, left_join, by = c("uid", "month", "year"))
+merged_df<- reduce(list_of_dfs, left_join, by = c("admin2Pcod", "month", "year"))
 
 
 # Extract population ------------------------------------------------------
@@ -91,21 +93,20 @@ rastlist
 # Create an empty list to store the results
 district_pop_list <- list()
 
-for(i in 1:9) { 
+# Loop through the years and perform extraction
+for (i in 1:9) {  # Adjust the range as needed
   year <- 2011 + i
-  district_pop_list[[year]] <- extract(allrasters[[i]], as(district_sf, "Spatial"), 
-                                       fun = sum, na.rm = TRUE)
+  district_pop_list[[year]] <- exact_extract(allrasters[[i]], district_sf, 'sum')
 }
 
-
-# Convert list to a data frame
+# Convert the list to a data frame
 district_pop_2012_2020 <- as.data.frame(do.call(cbind, district_pop_list))
 
 # Name the columns
 names(district_pop_2012_2020) <- paste0("district_pop_", 2012:2020)
 
 # Add the uid column
-district_pop_2012_2020$uid <- 1:nrow(district_pop_2012_2020)
+district_pop_2012_2020$admin2Pcod <- district_sf$admin2Pcod
 
 # Melt the dataframe
 district_pop_2012_2020_melted <- district_pop_2012_2020 %>%
@@ -116,9 +117,7 @@ district_pop_2012_2020_melted <- district_pop_2012_2020 %>%
 
 
 
-
-
-## Check against WDI numbers
+## Check against WDI numbers [DO NOT MATCH]
 district_pop_2012_2020_melted %>%
   group_by(year) %>%
   summarise(total_pop = sum(population))
@@ -126,7 +125,7 @@ district_pop_2012_2020_melted %>%
 
 # Merge NTL and population ------------------------------------------------
 merged_df <- merged_df %>%
-  left_join(district_pop_2012_2020_melted, by = c("uid", "year"))
+  left_join(district_pop_2012_2020_melted, by = c("admin2Pcod","year"))
 
 
 # Export ------------------------------------------------------------------
@@ -135,13 +134,4 @@ saveRDS(merged_df, file.path(lbn_file_path,
                              "final",
                              "lbn_distict_ntl_pop.Rds"))
 
-saveRDS(merged_df, file.path(lbn_onedrive_dir,
-                             "data",
-                             "municipalities",
-                             "lbn_district_ntl_pop.Rds"))
-
-write_csv(merged_df, file.path(lbn_onedrive_dir,
-                             "data",
-                             "municipalities",
-                             "lbn_district_ntl_pop.csv"))
 

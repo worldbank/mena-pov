@@ -2,10 +2,10 @@
 
 
 # Load Data ---------------------------------------------------------------
-df <- readRDS(file.path(lbn_onedrive_dir,
-                        "data",
-                        "municipalities",
-                        "lbn_district_ntl_pop.Rds"))
+df <- readRDS(file.path(lbn_file_path,
+                        "Nighttime_Lights",
+                        "final",
+                        "lbn_distict_ntl_pop.Rds"))
 
 district_sf <- st_read(file.path(lbn_file_path,
                                      "Boundaries",
