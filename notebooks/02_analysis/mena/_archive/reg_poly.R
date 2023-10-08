@@ -127,7 +127,9 @@ plot_data <- data.frame(VI = VI$VulPopSh_2016_2020,
 
 # Plots -------------------------------------------------------------------
 plot_co2 <- ggplot(plot_data, aes(y = Fitted_Values, x = mean_CO2)) +
-  geom_smooth(color = "green") +
+  geom_point(color = "grey", size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "green") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
        x = "Mean CO2 (kiloton)",
        y = "% Change in Mean NTL") +
@@ -135,14 +137,18 @@ plot_co2 <- ggplot(plot_data, aes(y = Fitted_Values, x = mean_CO2)) +
 
 
 plot_no2 <- ggplot(plot_data, aes(y = Fitted_Values, x = mean_NO2)) +
-  geom_smooth(color = "orange") +
+  geom_point(color = "grey",size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "orange") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
        x = "% Change in Mean NO2",
        y = "% Change in Mean NTL") +
   theme_classic()
 
 plot_pm <- ggplot(plot_data, aes(y = Fitted_Values, x = mean_pm)) +
-  geom_smooth(color = "black") +
+  geom_point(color = "grey",size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "black") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
     x = "% Change in Mean PM 2.5",
     y = "% Change in Mean NTL") +
@@ -150,35 +156,45 @@ plot_pm <- ggplot(plot_data, aes(y = Fitted_Values, x = mean_pm)) +
 
 
 plot_urban <- ggplot(plot_data, aes(y = Fitted_Values, x = urban)) +
-  geom_smooth(color = "pink") +
+  geom_point(color = "grey",size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "pink") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
     x = "Urban Density (sq.km)",
     y = "% Change in Mean NTL") +
   theme_classic()
 
 plot_temp <- ggplot(plot_data, aes(y = Fitted_Values, x = temp_diff)) +
-  geom_smooth(color = "red") +
+  geom_point(color = "grey",size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "red") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
        x = "Difference in Temperature (C)",
        y = "% Change in Mean NTL") +
   theme_classic()
 
 plot_precip <- ggplot(plot_data, aes(y = Fitted_Values, x = precip_diff)) +
-  geom_smooth(color = "brown") +
+  geom_point(color = "grey",size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "brown") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
     x = "Difference in Rainfall",
     y = "% Change in Mean NTL") +
   theme_classic()
 
 plot_drought <- ggplot(plot_data, aes(y = Fitted_Values, x = drought)) +
-  geom_smooth(color = "purple") +
+  geom_point(color = "grey",size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "purple") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
     x = "Combined Drought Index",
     y = "% Change in Mean NTL") +
   theme_classic()
 
 plot_rwi_squared <- ggplot(plot_data, aes(y = Fitted_Values, x = RWI_mean_squared)) +
-  geom_smooth(color = "yellow") +
+  geom_point(color = "grey",size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "yellow") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
     x = "Mean Relative Wealth Index, squared",
     y = "% Change in Mean NTL") +
@@ -186,7 +202,9 @@ plot_rwi_squared <- ggplot(plot_data, aes(y = Fitted_Values, x = RWI_mean_square
 
 
 plot_no2_rwi <- ggplot(plot_data, aes(y = Fitted_Values, x = interaction_no2_rwi)) +
-  geom_smooth() +
+  geom_point(color = "grey",size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "blue") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
        x = "Interaction b/w log(NO2) and RWI",
        y = "% Change in Mean NTL") +
@@ -202,15 +220,33 @@ grid.arrange(plot_co2, plot_no2, plot_pm,plot_temp,
              nrow = 3, ncol = 3)
 
 
-
-
-plot_fitted_values <- ggplot() +
-  geom_point(data = plot_data, aes(y = Fitted_Values, x = VI), color = "darkgrey")+
-  geom_smooth(data = plot_data, aes(y = Fitted_Values, x = VI), color = "black") +
+plot_fitted_values <- ggplot(plot_data, aes(y = Fitted_Values, x = VI)) +
+  geom_point(color = "grey",size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x,2, raw = TRUE), color = "black") +
+  geom_smooth(color = "black", linetype = "dotted") +
   labs(
     x = " Simple Vulnerability Index (w/ RWI) ",
     y = "% Change in Mean NTL (Estimated)") +
   theme_classic()
+
 plot_fitted_values
+
+plot_fitted_values <- ggplot(plot_data, aes(y = Fitted_Values, x = VI)) +
+  geom_point(color = "grey", size = 1) +
+  stat_smooth(method = "gam", formula = y ~ poly(x, 2, raw = TRUE), color = "black") +
+  geom_smooth(aes(linetype = "Perfect Fit", color = "Polynomial Fit (Order 2)"), show.legend = TRUE) +
+  labs(
+    x = "Simple Vulnerability Index (w/ RWI)",
+    y = "% Change in Mean NTL (Estimated)",
+    linetype = "",
+    color = ""
+  ) +
+  scale_linetype_manual(values = "dotted") +
+  scale_color_manual(values = "black") +
+  theme_classic()
+
+print(plot_fitted_values)
+
+
 
 

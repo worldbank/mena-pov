@@ -24,6 +24,7 @@ jor_file_path <- file.path(local_dir,"JOR","GEO")
 jor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/Jordan")
 
 mena_file_path <- file.path(local_dir,"MENA","GEO")
+global_file_path <- file.path(local_dir, "GEOGlobal")
 
 mor_file_path <- file.path(local_dir,"MOR","GEO")
 mor_onedrive_dir <- file.path("C:/Users/wb569257/OneDrive - WBG/MENAPOV Geospatial Documents - MENAPOV Geospatial Files/Projects/mor_earthquake_analysis")
@@ -65,7 +66,7 @@ packages <- c("sp", "purrr", "raster","readr","dplyr","parallel","pbmcapply",
               'pracma','lubridate', 'scales', 'stringr', 'tidymodels', 
               'flextable', 'rsample', 'hdm', 'pROC', 'glmnet',
               'tibble',"xlsx","GGally","xtable","pls","ggcorrplot","caret","sandwich", "KRLS",
-              "classInt", "RColorBrewer", "splines","ggeffects", "exactextractr","ggsn", "ggspatial")
+              "classInt", "RColorBrewer", "splines","ggeffects", "exactextractr","ggsn", "ggspatial", "gridExtra")
 
 # Install each package
 for (pkg in packages) {
