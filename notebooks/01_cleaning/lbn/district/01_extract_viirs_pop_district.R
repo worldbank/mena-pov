@@ -98,9 +98,9 @@ for (i in 1:9) {  # Adjust the range as needed
   district_pop_list[[year]] <- exact_extract(allrasters[[i]], district_sf, 'sum')
 }
 
+
 # Convert the list to a data frame
 district_pop_2012_2020 <- as.data.frame(do.call(cbind, district_pop_list))
-
 # Name the columns
 names(district_pop_2012_2020) <- paste0("district_pop_", 2012:2020)
 

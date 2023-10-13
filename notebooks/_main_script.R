@@ -10,7 +10,9 @@
 # FILEPATHS ====================================================================
 #### Root
 github_dir  <- "C:/Users/wb569257/OneDrive - WBG/Documents/GitHub"
+sharepoint_dir <- "C:/Users/wb569257/OneDrive - WBG/MENAPOV Geospatial Documents - MENAPOV Geospatial Files/MENAPOV GEO/Projects"
 local_dir   <- "M:"
+
 
 
 
@@ -33,7 +35,7 @@ lby_file_path <- file.path(local_dir, "LBY", "GEO")
 
 #### Overleaf
 tables_dir  <- "PATH"
-figures_dir <- "PATH"
+figures_dir <- file.path(sharepoint_dir, "vulnerability", "output","Figures")
 
 
 # PARAMETERS ===================================================================
