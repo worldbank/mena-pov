@@ -10,6 +10,9 @@ shp <- st_read(file.path(lbn_file_path,
                "Boundaries",
                "cadaster.shp"))
 
+
+grid_blank <- readRDS("M:/LBN/GEO/Nighttime_Lights/final/grid_blank.Rds")
+
 # Check Projection --------------------------------------------------------
 
 # Check CRS of both
@@ -79,90 +82,27 @@ merged_df<- reduce(list_of_dfs, left_join, by = c("ACS_CODE_1", "month", "year")
 
 
 
+# Merge with grid blank ---------------------------------------------------
 
-# Extract population ------------------------------------------------------
-setwd("M:/LBN/GEO/Population/raw")
-rastlist <- list.files(path = "M:/LBN/GEO/Population/raw", pattern='.tif$', 
-                       all.files=TRUE, full.names=FALSE)
+grid_blank <- grid_blank %>%
+  left_join(.,merged_df, by = c("ACS_CODE_1", "year", "month"))
 
-#import all raster files in folder using lapply
-allrasters <- lapply(rastlist, raster)
-rastlist
-
-
-
-# extract to shapefile
-years <- 2012:2020
-cas_pop <- list()
-
-for (i in 1:length(years)) {
-  cas_pop[[paste0("cas_pop_", years[i])]] <- exact_extract(allrasters[[i]], shp, 'sum')
-}
-
-
-# Convert the list to a data frame
-cas_pop_2012_2020 <- as.data.frame(do.call(cbind, cas_pop))
-
-# Add the uid column
-cas_pop_2012_2020$ACS_CODE_1 <- shp$ACS_CODE_1
-
-
-# Melt the dataframe
-cas_pop_2012_2020_melted <- cas_pop_2012_2020 %>%
-  pivot_longer(cols = starts_with("cas_pop_"), 
-               names_to = "year", 
-               values_to = "population") %>%
-  mutate(year = as.numeric(str_remove(year, "cas_pop_")))
-
-
-# Merge NTL and population ------------------------------------------------
-merged_df <- merged_df %>%
-  left_join(cas_pop_2012_2020_melted, by = c("ACS_CODE_1","year"))
-
-
-
-# Import refugee population -----------------------------------------------
-
-## Importing Refugee Populations
-# Define the file path
-file_path <- "M:/LBN/GEO/Team/TeamData/Breakdown of Registered Syrians by Cadaster 2012-Jun 2023.xlsx"
-
-# Get the names of all sheets
-all_sheets <- excel_sheets(file_path)
-
-# Assuming that each sheet has the same structure, you can read and bind them together
-ref_pop <- lapply(all_sheets, function(sheet) {
-  data <- read_excel(file_path, sheet = sheet)
-  
-  # Adding a column for the date from the sheet name (assuming your sheet names are exactly in the format "Dec 2012", "Jan 2013" etc.)
-  data$Date <- as.Date(paste("01", sheet), format="%d %b %Y")
-  
-  return(data)
-}) %>% bind_rows()
-  
-
-
-# Merge shp attributes ----------------------------------------------------
-shp_nogeom <- shp %>% st_drop_geometry() %>% select(ACS_CODE_1,Cadaster,District,Governorat)
 
 
 
 
 #Export
-saveRDS(merged_df, file.path(lbn_file_path,
+saveRDS(grid_blank, file.path(lbn_file_path,
                              "Nighttime_Lights",
                              "final",
-                             "cas_pop_ntl.Rds"))
+                             "grid_ntl.Rds"))
 
-write_csv(merged_df, file.path(lbn_file_path,
+write_csv(grid_blank, file.path(lbn_file_path,
                              "Nighttime_Lights",
                              "final",
-                             "cas_pop_ntl.csv"))
+                             "grid_ntl.csv"))
 
-write_csv(shp_nogeom, file.path(lbn_file_path,
-                               "Nighttime_Lights",
-                               "final",
-                               "cas_id.csv"))
+
 
 
 
