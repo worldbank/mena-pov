@@ -1,0 +1,54 @@
+// Initialize the dataset
+var dataset = ee.Image('UMD/hansen/global_forest_change_2023_v1_11');
+
+// Visualization parameters
+var treeLossVisParam = {
+  bands: ['loss'],
+  min: 0,
+  max: 23,
+  palette: ['yellow', 'red']
+};
+
+// Function to add the layer to the map, print loss year data, and export to Drive
+function addAndExportCountryLayer(countryName) {
+  // Load country boundaries from a FeatureCollection
+  var countries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017");
+  
+  // Filter the FeatureCollection by country name
+  var country = countries.filter(ee.Filter.eq('country_na', countryName));
+  
+  // Clip the dataset to the country boundaries
+  var loss = dataset.select(['loss']).clip(country);
+  
+  // Add the layer to the map
+  Map.addLayer(loss, treeLossVisParam, 'Tree Loss: ' + countryName);
+  
+  // Print the loss year data for the country
+  print('Loss data for ' + countryName + ':', loss);
+  
+  // Export the raster to Google Drive
+  Export.image.toDrive({
+    image: loss,
+    description: 'forest_change_' + countryName.replace(/ /g, '_'),
+    fileNamePrefix: 'forest_change_' + countryName.replace(/ /g, '_'),
+    scale: 30, // Adjust the scale as needed
+    region: country.geometry(),
+    crs: 'EPSG:4326',
+    maxPixels: 1e13
+  });
+}
+
+// Define the country names
+var country_names = [
+  "Algeria", "Bahrain", "Djibouti", "Egypt", "West Bank", "Iran", "Kuwait", 
+  "Iraq", "Jordan", "Israel", "Lebanon", "Libya", "Morocco", "Malta", "Oman", 
+  "Qatar", "Saudi Arabia", "Syria", "Tunisia", "Yemen", "United Arab Emirates"
+];
+
+// Loop through each country and add its layer
+country_names.forEach(function(country) {
+  addAndExportCountryLayer(country);
+});
+
+// Center the map
+Map.setCenter(51.1657, 10.4515, 3);

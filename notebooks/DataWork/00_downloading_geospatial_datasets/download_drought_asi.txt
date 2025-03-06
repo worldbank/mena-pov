@@ -1,0 +1,21 @@
+# Download Instructions for Raster ----------------------------------------
+# Download the layer from the internet server
+# Define the WMS service URL
+#wms_url <- "https://io.apps.fao.org/geoserver/wms/ASIS/HDF/v1?service=WMS&version=1.3.0"
+
+# Define the bounding box (extent) of the area you want to retrieve
+# Here, I'm using a bounding box for the entire region
+# bbox <- c(left = -17, bottom = 7, right = 67, top = 42)
+
+# Define additional parameters for the WMS request
+#params <- list(
+#  layers = "ASIS:HDF.v1_counties",  # Specify the layer name
+#  format = "image/tiff",             # Specify the format you need
+#  crs = "+proj=longlat +datum=WGS84"  # Specify the CRS
+#)
+
+# Create a URL for the WMS GetMap request
+#wms_request <- paste(wms_url, "service=WMS", "version=1.3.0",
+#                     "request=GetMap", "layers=", params$layers,
+#                     "format=", params$format, "crs=", params$crs,
+#                     "bbox=", paste(bbox, collapse = ","), sep = "&")
